@@ -1,31 +1,33 @@
+package common.logger;
+
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 
-public class Logger {
+public class MyLogger {
   private final DateTimeFormatter dateFormatter;
   String identifier;
 
   private static final String ANSI_RED = "\u001B[31m";
   public static final String ANSI_YELLOW = "\u001B[33m";
   private static final String ANSI_RESET = "\u001B[0m";
-  public Logger(String id) {
+  public MyLogger(String id) {
     this.identifier = id;
     this.dateFormatter = DateTimeFormatter.ofPattern("HH:mm:ss");
   }
-  private void log(Object o) {
+  public void log(Object o) {
     String s = o.toString();
     String date = dateFormatter.format(LocalDateTime.now());
     String toPrint = String.format("%s [%s] %s \n",date,identifier,s);
     System.out.printf(toPrint);
   }
-  private void error(Object o) {
+  public void error(Object o) {
     String s = o.toString();
     String date = dateFormatter.format(LocalDateTime.now());
     String toPrint = String.format("%s [%s] %s \n",date,identifier,s);
     System.out.printf(ANSI_RED+toPrint+ANSI_RESET);
   }
-  private void warn(Object o) {
+  public void warn(Object o) {
     String s = o.toString();
     String date = dateFormatter.format(LocalDateTime.now());
     String toPrint = String.format("%s [%s] %s \n",date,identifier,s);
@@ -33,7 +35,7 @@ public class Logger {
   }
 
   public static void main(String[] args) {
-    Logger logger = new Logger("Test");
+    MyLogger logger = new MyLogger("Test");
     ArrayList<Integer> integerArrayList = new ArrayList<>();
     integerArrayList.add(10);
     integerArrayList.add(20);

@@ -1,9 +1,12 @@
 package admin.server.services;
 
+import cleaning_robot.CleaningRobotRep;
+import common.logger.MyLogger;
+
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
 
-@Path("/robots")
+@Path("/greenfield/robots")
 public class ToRobotServices {
   @GET
   @Produces("text/plain")
@@ -11,12 +14,11 @@ public class ToRobotServices {
     return Response.ok("I'm the Administration server for Greenfield").build();
   }
   @POST
-  @Path("insert/{id}/{ip}/{communicationPort}")
-  @Produces("{application/json}")
-  public Response request(
-      @PathParam("id") String id,
-      @PathParam("ip") String ip,
-      @PathParam("communicationPort") Integer communicationPort) {
+  @Path("insert")
+  @Consumes({"application/json", "application/xml"})
+  public Response request(CleaningRobotRep robotRep) {
+    MyLogger m = new MyLogger("ServerRobotServices");
+    m.log(robotRep);
     return Response.status(501).entity("{\"Error\":\"Not implemented\"}").build();
   }
 
