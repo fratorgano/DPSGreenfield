@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Objects;
 
 public class District implements Comparable<District> {
-  List<CleaningRobotRep> cleaningRobotRepList = new ArrayList<>();
+  private List<CleaningRobotRep> cleaningRobotRepList = new ArrayList<>();
   String name;
   public District(String name) {
     this.name = name;
@@ -23,6 +23,10 @@ public class District implements Comparable<District> {
   }
   public boolean canAddRobot(CleaningRobotRep crp) {
     return cleaningRobotRepList.stream().anyMatch(c-> Objects.equals(c.ID, crp.ID));
+  }
+
+  public List<CleaningRobotRep> getCleaningRobotRepList() {
+    return cleaningRobotRepList;
   }
 
   @Override

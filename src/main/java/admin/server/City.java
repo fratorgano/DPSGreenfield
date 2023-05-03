@@ -28,7 +28,7 @@ public class City {
       d.addRobot(crp);
       return true;
     } else {
-      logger.error("Can't add robot");
+      logger.error("Can't add robot, another with the same ID is present");
       return false;
     }
   }
@@ -40,6 +40,15 @@ public class City {
   synchronized District findBalanced() {
     return Collections.min(districtList);
   }
+
+  public synchronized List<CleaningRobotRep> getRobotsList() {
+    List<CleaningRobotRep> robotsList = new ArrayList<>();
+    for (District district : districtList) {
+      robotsList.addAll(district.getCleaningRobotRepList());
+    }
+    return robotsList;
+  }
+
   synchronized void buildCity() {
     // mainly used in tests to reset singleton after each test
     districtList.clear();
