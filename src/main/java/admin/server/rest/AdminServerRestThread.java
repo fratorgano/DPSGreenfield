@@ -3,6 +3,8 @@ package admin.server.rest;
 import com.sun.jersey.api.container.httpserver.HttpServerFactory;
 import com.sun.net.httpserver.HttpServer;
 import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class AdminServerRestThread {
 
@@ -11,6 +13,9 @@ public class AdminServerRestThread {
 
 
   public static void main(String[] args) throws IOException {
+    // removes unnecessary messages from jersey logger
+    Logger.getLogger("com.sun.jersey").setLevel(Level.SEVERE);
+
     HttpServer server = HttpServerFactory.create("http://"+HOST+":"+PORT+"/");
     server.start();
 
