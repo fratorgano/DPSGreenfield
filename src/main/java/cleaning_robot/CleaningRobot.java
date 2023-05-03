@@ -28,12 +28,12 @@ public class CleaningRobot {
         } else {
             logger.log("Received empty response");
         }
-
     }
 
     private ClientResponse postInsertRequest(Client client, String serverAddress){
-        WebResource webResource = client.resource(serverAddress+"/greenfield/robots/insert");
+        WebResource webResource = client.resource(serverAddress+"/robots/insert");
         String input = new Gson().toJson(this.crp);
+        logger.log(input);
         try {
             return webResource.type("application/json").post(ClientResponse.class, input);
         } catch (ClientHandlerException e) {

@@ -1,12 +1,11 @@
 package cleaning_robot;
 
-import javax.xml.bind.annotation.XmlRootElement;
-
-@XmlRootElement
 public class CleaningRobotRep {
-    String ID;
-    String IPAddress;
-    Integer interactionPort;
+    public String ID;
+    public String IPAddress;
+    public Integer interactionPort;
+    // Needed for service to actually work, if removed service will return 400 Bad Request
+    public CleaningRobotRep() {}
 
     public CleaningRobotRep(String ID, String IPAddress, Integer interactionPort) {
         this.ID = ID;
