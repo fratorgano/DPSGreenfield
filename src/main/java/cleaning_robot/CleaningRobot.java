@@ -25,6 +25,8 @@ public class CleaningRobot {
         ClientResponse cr = postInsertRequest(client,serverAddress);
         if(cr!=null) {
             logger.log(cr.toString());
+            CleaningRobotInit cri = cr.getEntity(CleaningRobotInit.class);
+            logger.log(cri);
         } else {
             logger.log("Received empty response");
         }
