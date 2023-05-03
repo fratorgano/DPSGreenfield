@@ -7,16 +7,28 @@ import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 import common.logger.MyLogger;
 
+import java.util.List;
+import java.util.Optional;
+
 public class CleaningRobot {
-    private final MyLogger logger;
+    private final MyLogger l = new MyLogger("CleaningRobot");
     CleaningRobotRep crp;
+    List<CleaningRobotRep> others;
+    Integer x,y;
     public CleaningRobot(String ID, String IPAddress, Integer interactionPort) {
         this.crp = new CleaningRobotRep(ID, IPAddress,interactionPort);
-        this.logger = new MyLogger("CleaningRobot");
-        insertIntoCity();
+        l.log("Trying to join the city...");
+        Optional<CleaningRobotInit> joined = insertIntoCity();
+        if(joined.isPresent()) {
+            l.log("Joined the city");
+            others = joined.get().robots;
+            x = joined.get().x;
+            y = joined.get().y;
+            l.log(String.format("I'm at position: (%d,%d)",x,y));
+        }
     }
 
-    private void insertIntoCity() {
+    private Optional<CleaningRobotInit> insertIntoCity() {
         // Connect to rest admin server to notify it and get location
         Client client = Client.create();
         String serverAddress = "http://localhost:1337";
@@ -24,27 +36,37 @@ public class CleaningRobot {
         // Send request to be inserted in the city
         ClientResponse cr = postInsertRequest(client,serverAddress);
         if(cr!=null) {
-            logger.log(cr.toString());
-            CleaningRobotInit cri = cr.getEntity(CleaningRobotInit.class);
-            logger.log(cri);
+            l.log("Response received: "+cr);
+            if (cr.getStatus() == ClientResponse.Status.OK.getStatusCode()) {
+                CleaningRobotInit cri = cr.getEntity(CleaningRobotInit.class);
+                l.log("Received initialization: "+cri);
+                return Optional.of(cri);
+            } else {
+                l.error("Request to insert into city was rejected");
+                return Optional.empty();
+            }
         } else {
-            logger.log("Received empty response");
+            l.error("Received empty response");
+            return Optional.empty();
         }
     }
 
     private ClientResponse postInsertRequest(Client client, String serverAddress){
         WebResource webResource = client.resource(serverAddress+"/robots/insert");
         String input = new Gson().toJson(this.crp);
-        logger.log(input);
+        l.log(input);
         try {
+            l.log("Sending POST insert request");
             return webResource.type("application/json").post(ClientResponse.class, input);
         } catch (ClientHandlerException e) {
-            logger.log("Failed to make the insert post request");
+            l.error("Failed to make the insert post request");
             return null;
         }
     }
 
     public static void main(String[] args) {
-        CleaningRobot cr = new CleaningRobot("12345","localhost",3456);
+        for (int i = 0; i < 5; i++) {
+            CleaningRobot cr = new CleaningRobot(String.valueOf(i),"localhost",3456+i);
+        }
     }
 }
