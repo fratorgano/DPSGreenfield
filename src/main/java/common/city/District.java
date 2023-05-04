@@ -1,4 +1,4 @@
-package admin.server;
+package common.city;
 
 import cleaning_robot.CleaningRobotRep;
 

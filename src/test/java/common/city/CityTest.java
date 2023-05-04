@@ -1,6 +1,8 @@
-package admin.server;
+package common.city;
 
 import cleaning_robot.CleaningRobotRep;
+import common.city.City;
+import common.city.District;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;

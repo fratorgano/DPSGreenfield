@@ -1,4 +1,4 @@
-package admin.server;
+package common.city;
 
 import cleaning_robot.CleaningRobotRep;
 import common.logger.MyLogger;
@@ -11,14 +11,20 @@ public class City {
   List<District> districtList = new ArrayList<>();
   MyLogger logger = new MyLogger("City");
 
-  public synchronized static City getCity() {
+  public synchronized static City getCity(int districtNumber) {
     if (c==null) {
-      c = new City();
+      c = new City(districtNumber);
     }
     return c;
   }
-  City() {
-    buildCity();
+  public synchronized static City getCity() {
+    if (c==null) {
+      c = new City(4);
+    }
+    return c;
+  }
+  City(int districtNumber) {
+    buildCity(districtNumber);
   }
 
   public synchronized boolean addRobot(CleaningRobotRep crp) {
@@ -50,9 +56,12 @@ public class City {
   }
 
   synchronized void buildCity() {
+    buildCity(4);
+  }
+  synchronized void buildCity(int n) {
     // mainly used in tests to reset singleton after each test
     districtList.clear();
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < n; i++) {
       districtList.add(new District(String.valueOf(i)));
     }
   }
