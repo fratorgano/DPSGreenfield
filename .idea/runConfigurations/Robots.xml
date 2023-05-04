@@ -1,0 +1,8 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Robots" type="CompoundRunConfigurationType">
+    <toRun name="Robot0" type="Application" />
+    <toRun name="Robot1" type="Application" />
+    <toRun name="Robot2" type="Application" />
+    <method v="2" />
+  </configuration>
+</component>
