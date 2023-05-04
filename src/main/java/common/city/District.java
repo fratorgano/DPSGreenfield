@@ -33,4 +33,12 @@ public class District implements Comparable<District> {
   public int compareTo(District o) {
     return Integer.compare(this.getSize(),o.getSize());
   }
+
+  @Override
+  public String toString() {
+    return "District{" +
+        "cleaningRobotRepList=" + cleaningRobotRepList +
+        ", name='" + name + '\'' +
+        '}';
+  }
 }

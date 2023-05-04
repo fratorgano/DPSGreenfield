@@ -65,6 +65,13 @@ public class City {
       districtList.add(new District(String.valueOf(i)));
     }
   }
+
+  @Override
+  public String toString() {
+    return "City{" +
+        "districtList=" + districtList +
+        '}';
+  }
 }
 
 
