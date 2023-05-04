@@ -1,0 +1,31 @@
+syntax = "proto3";
+package proto;
+
+// Defining a Service, a Service can have multiple RPC operations
+service CleaningRobotService {
+  rpc introduceYourself(Introduction) returns (Ack);
+  // rpc simpleSum(PairOfNumbers) returns (SumResponse);
+  // rpc repeatedSum(PairOfNumbers) returns (stream SumResponse);
+  // rpc streamSum(stream PairOfNumbers) returns (SumResponse);
+  // rpc streamSums(stream PairOfNumbers) returns (stream SumResponse);
+}
+message Introduction {
+  CleaningRobotRep crp = 1;
+  Position position = 2;
+}
+message Position {
+  int32 x = 1;
+  int32 y = 2;
+}
+message Ack {}
+
+message CleaningRobotRep {
+  string ID = 1;
+  string IP = 2;
+  int32 port = 3;
+}
+
+message SumResponse {
+  int64 result = 1;
+  repeated int64 addend = 2;
+}

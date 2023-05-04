@@ -1,20 +1,22 @@
 package cleaning_robot;
 
+import common.city.City;
 import com.google.gson.Gson;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientHandlerException;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
+import common.city.Position;
 import common.logger.MyLogger;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 public class CleaningRobot {
     private final MyLogger l = new MyLogger("CleaningRobot");
     CleaningRobotRep crp;
     List<CleaningRobotRep> others;
-    Integer x,y;
     public CleaningRobot(String ID, String IPAddress, Integer interactionPort) {
         this.crp = new CleaningRobotRep(ID, IPAddress,interactionPort);
         l.log("Trying to join the city...");
@@ -22,10 +24,36 @@ public class CleaningRobot {
         if(joined.isPresent()) {
             l.log("Joined the city");
             others = joined.get().robots;
-            x = joined.get().x;
-            y = joined.get().y;
-            l.log(String.format("I'm at position: (%d,%d)",x,y));
+            // initialize a city with only one district, we don't care about which
+            // district they are in
+            City.getCity(1);
+            for (CleaningRobotRep other : others) {
+                City.getCity().addRobot(other);
+            }
+            this.crp.position = new Position(joined.get().x,joined.get().y);
+            l.log(String.format("I'm at position: (%d,%d)",this.crp.position.x,this.crp.position.y));
+            l.log("Starting GRPC server at port: "+interactionPort);
+            CleaningRobotGRPCThread crgt = new CleaningRobotGRPCThread(interactionPort);
+            crgt.start();
+            l.log("Introducing myself to others");
+            introduceMyself();
         }
+    }
+
+    private void introduceMyself() {
+        City simpleCity = City.getCity();
+        for (CleaningRobotRep cleaningRobotRep : simpleCity.getRobotsList()) {
+            if (Objects.equals(cleaningRobotRep.interactionPort, crp.interactionPort)) continue;
+            String socket = cleaningRobotRep.IPAddress + ':' + cleaningRobotRep.interactionPort;
+            l.log("Introducing myself to "+socket);
+            CleaningRobotGRPCUser.asyncPresentation(
+                socket,
+                crp.position.x,
+                crp.position.y,
+                crp
+            );
+        }
+        l.log("Introductions are done");
     }
 
     private Optional<CleaningRobotInit> insertIntoCity() {
@@ -65,8 +93,8 @@ public class CleaningRobot {
     }
 
     public static void main(String[] args) {
-        for (int i = 0; i < 5; i++) {
-            CleaningRobot cr = new CleaningRobot(String.valueOf(i),"localhost",3456+i);
-        }
+        String ID = args[0];
+        Integer port = Integer.valueOf(args[1]);
+        CleaningRobot cr = new CleaningRobot(ID,"localhost",port);
     }
 }

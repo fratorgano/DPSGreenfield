@@ -1,9 +1,12 @@
 package cleaning_robot;
 
+import common.city.Position;
+
 public class CleaningRobotRep {
     public String ID;
     public String IPAddress;
     public Integer interactionPort;
+    public Position position;
     // Needed for service to actually work, if removed service will return 400 Bad Request
     public CleaningRobotRep() {}
 
@@ -16,9 +19,10 @@ public class CleaningRobotRep {
     @Override
     public String toString() {
         return "CleaningRobotRep{" +
-                "ID='" + ID + '\'' +
-                ", IPAddress='" + IPAddress + '\'' +
-                ", interactionPort=" + interactionPort +
-                '}';
+            "ID='" + ID + '\'' +
+            ", IPAddress='" + IPAddress + '\'' +
+            ", interactionPort=" + interactionPort +
+            ", position=" + position +
+            '}';
     }
 }

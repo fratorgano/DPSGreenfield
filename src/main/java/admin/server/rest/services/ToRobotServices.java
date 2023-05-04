@@ -1,8 +1,9 @@
 package admin.server.rest.services;
 
-import admin.server.City;
+import common.city.City;
 import cleaning_robot.CleaningRobotInit;
 import cleaning_robot.CleaningRobotRep;
+import common.city.Position;
 import common.logger.MyLogger;
 
 import javax.ws.rs.*;
@@ -27,6 +28,7 @@ public class ToRobotServices {
     City c = City.getCity();
     Integer x = ThreadLocalRandom.current().nextInt(0,10);
     Integer y = ThreadLocalRandom.current().nextInt(0,10);
+    robotRep.position = new Position(x,y);
     boolean added = c.addRobot(robotRep);
     if(added) {
       m.log("Robot was added successfully, answering with CleaningRobotInit and code 200-Ok ");
