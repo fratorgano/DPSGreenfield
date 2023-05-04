@@ -43,6 +43,15 @@ public class City {
     return districtList.stream().noneMatch(district -> district.canAddRobot(crp));
   }
 
+  public synchronized boolean removeRobot(CleaningRobotRep crp) {
+    boolean removed = false;
+    for (District district : districtList) {
+      boolean removedInDistrict = district.removeRobot(crp);
+      removed = removed || removedInDistrict;
+    }
+    return removed;
+  }
+
   synchronized District findBalanced() {
     return Collections.min(districtList);
   }

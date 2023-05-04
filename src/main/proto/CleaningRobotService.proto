@@ -4,6 +4,7 @@ package proto;
 // Defining a Service, a Service can have multiple RPC operations
 service CleaningRobotService {
   rpc introduceYourself(Introduction) returns (Ack);
+  rpc leaving(CleaningRobotRep) returns (Ack);
   // rpc simpleSum(PairOfNumbers) returns (SumResponse);
   // rpc repeatedSum(PairOfNumbers) returns (stream SumResponse);
   // rpc streamSum(stream PairOfNumbers) returns (SumResponse);

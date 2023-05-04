@@ -12,11 +12,14 @@ import common.logger.MyLogger;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.stream.Collectors;
 
 public class CleaningRobot {
     private final MyLogger l = new MyLogger("CleaningRobot");
     CleaningRobotRep crp;
     List<CleaningRobotRep> others;
+    CleaningRobotGRPCThread crgt;
     public CleaningRobot(String ID, String IPAddress, Integer interactionPort) {
         this.crp = new CleaningRobotRep(ID, IPAddress,interactionPort);
         l.log("Trying to join the city...");
@@ -33,27 +36,20 @@ public class CleaningRobot {
             this.crp.position = new Position(joined.get().x,joined.get().y);
             l.log(String.format("I'm at position: (%d,%d)",this.crp.position.x,this.crp.position.y));
             l.log("Starting GRPC server at port: "+interactionPort);
-            CleaningRobotGRPCThread crgt = new CleaningRobotGRPCThread(interactionPort);
+            this.crgt = new CleaningRobotGRPCThread(interactionPort);
             crgt.start();
             l.log("Introducing myself to others");
             introduceMyself();
+            if(Objects.equals(this.crp.ID, "0")) {
+                try {
+                    Thread.sleep(ThreadLocalRandom.current().nextInt(5000,10000));
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+                l.log("leaving...");
+                leaveCity();
+            }
         }
-    }
-
-    private void introduceMyself() {
-        City simpleCity = City.getCity();
-        for (CleaningRobotRep cleaningRobotRep : simpleCity.getRobotsList()) {
-            if (Objects.equals(cleaningRobotRep.interactionPort, crp.interactionPort)) continue;
-            String socket = cleaningRobotRep.IPAddress + ':' + cleaningRobotRep.interactionPort;
-            l.log("Introducing myself to "+socket);
-            CleaningRobotGRPCUser.asyncPresentation(
-                socket,
-                crp.position.x,
-                crp.position.y,
-                crp
-            );
-        }
-        l.log("Introductions are done");
     }
 
     private Optional<CleaningRobotInit> insertIntoCity() {
@@ -79,6 +75,52 @@ public class CleaningRobot {
         }
     }
 
+    private void introduceMyself() {
+        City simpleCity = City.getCity();
+        for (CleaningRobotRep cleaningRobotRep : simpleCity.getRobotsList()) {
+            if (Objects.equals(cleaningRobotRep.interactionPort, crp.interactionPort)) continue;
+            String socket = cleaningRobotRep.IPAddress + ':' + cleaningRobotRep.interactionPort;
+            l.log("Introducing myself to "+socket);
+            CleaningRobotGRPCUser.asyncPresentation(
+                    socket,
+                    crp.position.x,
+                    crp.position.y,
+                    crp
+            );
+        }
+        l.log("Introductions are done");
+    }
+
+    private void leaveCity() {
+        l.log("I'm gonna leave the city");
+        List<String> robotSockets = City.getCity().getRobotsList().stream().map(
+                crp->crp.IPAddress+':'+crp.interactionPort
+        ).collect(Collectors.toList());
+        CleaningRobotGRPCUser.leaveCity(robotSockets,this.crp);
+
+        Client client = Client.create();
+        String serverAddress = "http://localhost:1337";
+        ClientResponse cr = deleteRemoveRequest(client,serverAddress);
+        if(cr!=null) {
+            l.log("Answer to deletion received: "+cr);
+            if (cr.getStatus() == ClientResponse.Status.OK.getStatusCode()) {
+                l.log("Leaving accepted from server, stopping...");
+                try {
+                    Thread.sleep(5000);
+                } catch (InterruptedException e) {
+                    l.log("Failed to sleep before stopping");
+                    throw new RuntimeException(e);
+                }
+                this.crgt.stopServer();
+                this.crgt.interrupt();
+            } else {
+                l.error("Leaving refused from server");
+            }
+        } else {
+            l.error("Received empty response to delete");
+        }
+    }
+
     private ClientResponse postInsertRequest(Client client, String serverAddress){
         WebResource webResource = client.resource(serverAddress+"/robots/insert");
         String input = new Gson().toJson(this.crp);
@@ -86,6 +128,19 @@ public class CleaningRobot {
         try {
             l.log("Sending POST insert request");
             return webResource.type("application/json").post(ClientResponse.class, input);
+        } catch (ClientHandlerException e) {
+            l.error("Failed to make the insert post request");
+            return null;
+        }
+    }
+
+    private ClientResponse deleteRemoveRequest(Client client, String serverAddress) {
+        WebResource webResource = client.resource(serverAddress+"/robots/delete");
+        String input = new Gson().toJson(this.crp);
+        l.log(input);
+        try {
+            l.log("Sending DELETE remove request");
+            return webResource.type("application/json").delete(ClientResponse.class, input);
         } catch (ClientHandlerException e) {
             l.error("Failed to make the insert post request");
             return null;
