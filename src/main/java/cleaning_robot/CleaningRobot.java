@@ -12,7 +12,6 @@ import common.logger.MyLogger;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 
 public class CleaningRobot {
@@ -40,15 +39,8 @@ public class CleaningRobot {
             crgt.start();
             l.log("Introducing myself to others");
             introduceMyself();
-            if(Objects.equals(this.crp.ID, "0")) {
-                try {
-                    Thread.sleep(ThreadLocalRandom.current().nextInt(5000,10000));
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
-                l.log("leaving...");
-                leaveCity();
-            }
+            CleaningRobotCLIThread crct = new CleaningRobotCLIThread(this);
+            crct.start();
         }
     }
 
@@ -91,7 +83,8 @@ public class CleaningRobot {
         l.log("Introductions are done");
     }
 
-    private void leaveCity() {
+    public void leaveCity() {
+        // leaves the city in a controlled way
         l.log("I'm gonna leave the city");
         List<String> robotSockets = City.getCity().getRobotsList().stream().map(
                 crp->crp.IPAddress+':'+crp.interactionPort
