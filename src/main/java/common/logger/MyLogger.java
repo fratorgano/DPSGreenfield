@@ -16,7 +16,7 @@ public class MyLogger {
     this.dateFormatter = DateTimeFormatter.ofPattern("HH:mm:ss");
   }
   public void log(Object o) {
-    String s = o.toString();
+    String s = o==null?"Null":o.toString();
     String date = dateFormatter.format(LocalDateTime.now());
     String toPrint = String.format("%s [%s] %s \n",date,identifier,s);
     System.out.printf(toPrint);
