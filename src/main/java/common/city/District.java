@@ -26,7 +26,7 @@ public class District implements Comparable<District> {
   }
 
   public List<CleaningRobotRep> getCleaningRobotRepList() {
-    return cleaningRobotRepList;
+    return new ArrayList<>(cleaningRobotRepList);
   }
 
   @Override
