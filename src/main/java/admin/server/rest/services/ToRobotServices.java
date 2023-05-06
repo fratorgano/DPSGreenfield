@@ -45,7 +45,7 @@ public class ToRobotServices {
   @Consumes({"application/json"})
   public Response remove(CleaningRobotRep crp) {
     MyLogger l = new MyLogger("RobotsRestServices");
-    l.log("Remove request from: "+crp);
+    l.log("Removing: "+crp);
     boolean removed = City.getCity().removeRobot(crp);
     if(removed) {
       l.log("Removed correctly: "+City.getCity());

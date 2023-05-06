@@ -5,6 +5,7 @@ package proto;
 service CleaningRobotService {
   rpc introduceYourself(Introduction) returns (Ack);
   rpc leaving(CleaningRobotRep) returns (Ack);
+  rpc areYouAlive(Ack) returns (Ack);
   // rpc simpleSum(PairOfNumbers) returns (SumResponse);
   // rpc repeatedSum(PairOfNumbers) returns (stream SumResponse);
   // rpc streamSum(stream PairOfNumbers) returns (SumResponse);

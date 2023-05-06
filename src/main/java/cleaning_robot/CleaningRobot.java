@@ -19,6 +19,8 @@ public class CleaningRobot {
     CleaningRobotRep crp;
     List<CleaningRobotRep> others;
     CleaningRobotGRPCThread crgt;
+    private CleaningRobotHeartbeatThread crht;
+
     public CleaningRobot(String ID, String IPAddress, Integer interactionPort) {
         this.crp = new CleaningRobotRep(ID, IPAddress,interactionPort);
         l.log("Trying to join the city...");
@@ -39,6 +41,9 @@ public class CleaningRobot {
             crgt.start();
             l.log("Introducing myself to others");
             introduceMyself();
+            l.log("Starting heartbeat thread");
+            startHeartbeats();
+
             CleaningRobotCLIThread crct = new CleaningRobotCLIThread(this);
             crct.start();
         }
@@ -89,29 +94,54 @@ public class CleaningRobot {
         List<String> robotSockets = City.getCity().getRobotsList().stream().map(
                 crp->crp.IPAddress+':'+crp.interactionPort
         ).collect(Collectors.toList());
-        CleaningRobotGRPCUser.leaveCity(robotSockets,this.crp);
+        CleaningRobotGRPCUser.asyncLeaveCity(robotSockets,this.crp);
 
         Client client = Client.create();
         String serverAddress = "http://localhost:1337";
-        ClientResponse cr = deleteRemoveRequest(client,serverAddress);
+        ClientResponse cr = deleteRemoveRequest(client,serverAddress,this.crp);
         if(cr!=null) {
             l.log("Answer to deletion received: "+cr);
             if (cr.getStatus() == ClientResponse.Status.OK.getStatusCode()) {
                 l.log("Leaving accepted from server, stopping...");
-                try {
-                    Thread.sleep(5000);
-                } catch (InterruptedException e) {
-                    l.log("Failed to sleep before stopping");
-                    throw new RuntimeException(e);
-                }
                 this.crgt.stopServer();
+                this.crht.stopHeartbeats();
                 this.crgt.interrupt();
+                this.crht.interrupt();
             } else {
                 l.error("Leaving refused from server");
             }
         } else {
             l.error("Received empty response to delete");
         }
+    }
+
+    public boolean removeFromCityAndNotifyServer(CleaningRobotRep crpToDelete) {
+        l.error("Removing from city: "+crpToDelete);
+        City.getCity().removeRobot(crpToDelete);
+        l.log("Updated city: "+City.getCity());
+        Client client = Client.create();
+        String serverAddress = "http://localhost:1337";
+
+        // Send request to be inserted in the city
+        ClientResponse cr = deleteRemoveRequest(client,serverAddress, crpToDelete);
+        if(cr!=null) {
+            l.log("Answer to deletion received: "+cr);
+            if (cr.getStatus() == ClientResponse.Status.OK.getStatusCode()) {
+                l.log("Removed unresponsive node from server");
+                return true;
+            } else {
+                l.error("Server didn't remove node, it was probably already removed");
+                return false;
+            }
+        } else {
+            l.error("No response received from server");
+            return false;
+        }
+
+    }
+    private void startHeartbeats() {
+        this.crht = new CleaningRobotHeartbeatThread(this);
+        crht.start();
     }
 
     private ClientResponse postInsertRequest(Client client, String serverAddress){
@@ -127,12 +157,12 @@ public class CleaningRobot {
         }
     }
 
-    private ClientResponse deleteRemoveRequest(Client client, String serverAddress) {
+    private ClientResponse deleteRemoveRequest(Client client, String serverAddress, CleaningRobotRep crp) {
         WebResource webResource = client.resource(serverAddress+"/robots/delete");
-        String input = new Gson().toJson(this.crp);
+        String input = new Gson().toJson(crp);
         l.log(input);
         try {
-            l.log("Sending DELETE remove request");
+            l.log("Sending DELETE remove request for "+crp);
             return webResource.type("application/json").delete(ClientResponse.class, input);
         } catch (ClientHandlerException e) {
             l.error("Failed to make the insert post request");

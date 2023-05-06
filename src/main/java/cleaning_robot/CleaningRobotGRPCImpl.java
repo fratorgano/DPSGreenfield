@@ -41,6 +41,17 @@ public class CleaningRobotGRPCImpl extends CleaningRobotServiceImplBase {
     );
     l.log("Removing it from City");
     City.getCity().removeRobot(toRemoveCrp);
-    l.log(City.getCity().toString());
+
+    Ack response = Ack.newBuilder().build();
+    responseObserver.onNext(response);
+    responseObserver.onCompleted();
+  }
+
+  @Override
+  public void areYouAlive(Ack request, StreamObserver<Ack> responseObserver) {
+    l.log("Got a request to know if I'm alive, I am");
+    Ack response = Ack.newBuilder().build();
+    responseObserver.onNext(response);
+    responseObserver.onCompleted();
   }
 }
