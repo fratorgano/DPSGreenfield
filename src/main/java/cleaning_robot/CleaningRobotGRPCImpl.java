@@ -54,4 +54,6 @@ public class CleaningRobotGRPCImpl extends CleaningRobotServiceImplBase {
     responseObserver.onNext(response);
     responseObserver.onCompleted();
   }
+
+
 }

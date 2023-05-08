@@ -137,7 +137,6 @@ public class CleaningRobot {
             l.error("No response received from server");
             return false;
         }
-
     }
     private void startHeartbeats() {
         this.crht = new CleaningRobotHeartbeatThread(this);
