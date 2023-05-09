@@ -1,5 +1,6 @@
 package cleaning_robot;
 
+import cleaning_robot.maintenance.CleaningRobotMaintenanceThread;
 import common.city.City;
 import com.google.gson.Gson;
 import com.sun.jersey.api.client.Client;
@@ -16,6 +17,7 @@ import java.util.stream.Collectors;
 
 public class CleaningRobot {
     private final MyLogger l = new MyLogger("CleaningRobot");
+    private CleaningRobotMaintenanceThread crmt;
     CleaningRobotRep crp;
     List<CleaningRobotRep> others;
     CleaningRobotGRPCThread crgt;
@@ -37,12 +39,15 @@ public class CleaningRobot {
             this.crp.position = new Position(joined.get().x,joined.get().y);
             l.log(String.format("I'm at position: (%d,%d)",this.crp.position.x,this.crp.position.y));
             l.log("Starting GRPC server at port: "+interactionPort);
-            this.crgt = new CleaningRobotGRPCThread(interactionPort);
+            this.crgt = new CleaningRobotGRPCThread(interactionPort, this);
             crgt.start();
             l.log("Introducing myself to others");
             introduceMyself();
             l.log("Starting heartbeat thread");
             startHeartbeats();
+            l.log("Starting maintenance thread");
+            this.crmt = new CleaningRobotMaintenanceThread(this.crp);
+            crmt.start();
 
             CleaningRobotCLIThread crct = new CleaningRobotCLIThread(this);
             crct.start();
@@ -122,6 +127,8 @@ public class CleaningRobot {
         Client client = Client.create();
         String serverAddress = "http://localhost:1337";
 
+        // let maintenance thread know that a robot left
+        crmt.handleRobotLeaving(crpToDelete);
         // Send request to be inserted in the city
         ClientResponse cr = deleteRemoveRequest(client,serverAddress, crpToDelete);
         if(cr!=null) {
@@ -141,6 +148,18 @@ public class CleaningRobot {
     private void startHeartbeats() {
         this.crht = new CleaningRobotHeartbeatThread(this);
         crht.start();
+    }
+
+
+    public void requestMaintenance() {
+        crmt.triggerMaintenance();
+    }
+    public boolean receiveMaintenanceRequest(CleaningRobotRep requestedCrp, String timestamp) {
+        return crmt.receiveMaintenanceRequest(requestedCrp,timestamp);
+    }
+
+    public void receiveMaintenanceConfirmation(CleaningRobotRep confirmedCrp) {
+        crmt.receiveMaintenanceConfirmation(confirmedCrp);
     }
 
     private ClientResponse postInsertRequest(Client client, String serverAddress){

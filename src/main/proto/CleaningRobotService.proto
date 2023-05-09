@@ -7,10 +7,7 @@ service CleaningRobotService {
   rpc leaving(CleaningRobotRep) returns (Ack);
   rpc areYouAlive(Ack) returns (Ack);
   rpc maintenanceNeed(MaintenanceReq) returns (Ack);
-  // rpc simpleSum(PairOfNumbers) returns (SumResponse);
-  // rpc repeatedSum(PairOfNumbers) returns (stream SumResponse);
-  // rpc streamSum(stream PairOfNumbers) returns (SumResponse);
-  // rpc streamSums(stream PairOfNumbers) returns (stream SumResponse);
+  rpc confirmMaintenance(CleaningRobotRep) returns (Ack);
 }
 message MaintenanceReq {
   CleaningRobotRep crp = 1;

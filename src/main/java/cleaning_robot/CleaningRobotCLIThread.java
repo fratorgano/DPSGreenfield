@@ -47,5 +47,6 @@ public class CleaningRobotCLIThread extends Thread {
 
   private void failure() {
     l.log("Failure request from CLI");
+    cr.requestMaintenance();
   }
 }

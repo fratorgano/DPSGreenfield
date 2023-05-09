@@ -8,16 +8,18 @@ import java.io.IOException;
 
 public class CleaningRobotGRPCThread extends Thread{
   private final Integer port;
+  private final CleaningRobot cr;
   MyLogger l = new MyLogger("CleaningRobotGRPCThread");
   Server server;
-  public CleaningRobotGRPCThread(Integer port) {
+  public CleaningRobotGRPCThread(Integer port, CleaningRobot cr) {
     this.port = port;
+    this.cr = cr;
   }
 
   @Override
   public void run() {
     server = ServerBuilder.forPort(this.port)
-        .addService(new CleaningRobotGRPCImpl())
+        .addService(new CleaningRobotGRPCImpl(cr))
         .build();
     startServer();
   }
