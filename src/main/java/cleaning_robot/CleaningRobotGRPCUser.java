@@ -33,7 +33,7 @@ public class CleaningRobotGRPCUser {
     stub.introduceYourself(request, new StreamObserver<CleaningRobotServiceOuterClass.Ack>() {
       @Override
       public void onNext(CleaningRobotServiceOuterClass.Ack value) {
-        l.log("Received Ack from other robot");
+        // l.log("Received Ack from other robot");
       }
 
       @Override
@@ -43,7 +43,7 @@ public class CleaningRobotGRPCUser {
 
       @Override
       public void onCompleted() {
-        l.log("Presentation completed, closing channel");
+        // l.log("Presentation completed, closing channel");
         channel.shutdown();
       }
     });
@@ -60,7 +60,7 @@ public class CleaningRobotGRPCUser {
       stub.leaving(crpService, new StreamObserver<CleaningRobotServiceOuterClass.Ack>() {
         @Override
         public void onNext(CleaningRobotServiceOuterClass.Ack value) {
-          l.log("Received Ack from robot at" + socket);
+          // l.log("Received Ack from robot at" + socket);
         }
 
         @Override
@@ -70,7 +70,7 @@ public class CleaningRobotGRPCUser {
 
         @Override
         public void onCompleted() {
-          l.log(String.format("Robot at %s acknowledged leave request, closing channel",socket));
+          // l.log(String.format("Robot at %s acknowledged leave request, closing channel",socket));
           channel.shutdown();
         }
       });
@@ -89,7 +89,7 @@ public class CleaningRobotGRPCUser {
       stub.areYouAlive(response, new StreamObserver<CleaningRobotServiceOuterClass.Ack>() {
         @Override
         public void onNext(CleaningRobotServiceOuterClass.Ack value) {
-          l.log("Received Ack for areYouAlive from robot at " + socket);
+          // l.log("Received Ack for areYouAlive from robot at " + socket);
         }
 
         @Override
@@ -101,7 +101,7 @@ public class CleaningRobotGRPCUser {
 
         @Override
         public void onCompleted() {
-          l.log(String.format("Robot at %s is still alive, closing channel",socket));
+          // l.log(String.format("Robot at %s is still alive, closing channel",socket));
           channel.shutdown();
         }
       });
@@ -117,7 +117,6 @@ public class CleaningRobotGRPCUser {
         .filter(c->!c.ID.equals(crp.ID))
         .map(c -> c.IPAddress + ':' + c.interactionPort)
         .collect(Collectors.toList());
-    l.log(robotsSockets);
     // notify other robots of leaving
     for (String socket : robotsSockets) {
       final ManagedChannel channel = ManagedChannelBuilder.forTarget(socket).usePlaintext().build();
@@ -134,7 +133,7 @@ public class CleaningRobotGRPCUser {
       stub.maintenanceNeed(maintenanceReq, new StreamObserver<CleaningRobotServiceOuterClass.Ack>() {
         @Override
         public void onNext(CleaningRobotServiceOuterClass.Ack value) {
-          l.log("Received Ack from robot for MaintenanceReq at" + socket);
+          // l.log("Received Ack from robot for MaintenanceReq at" + socket);
         }
 
         @Override
@@ -144,7 +143,7 @@ public class CleaningRobotGRPCUser {
 
         @Override
         public void onCompleted() {
-          l.log(String.format("Robot at %s acknowledged maintenance request, closing channel",socket));
+          // l.log(String.format("Robot at %s acknowledged maintenance request, closing channel",socket));
           channel.shutdown();
         }
       });
@@ -166,7 +165,7 @@ public class CleaningRobotGRPCUser {
       stub.confirmMaintenance(serviceCrp, new StreamObserver<CleaningRobotServiceOuterClass.Ack>() {
         @Override
         public void onNext(CleaningRobotServiceOuterClass.Ack value) {
-          l.log("Received Ack from robot for ConfirmMaintenanceReq at" + socket);
+          // l.log("Received Ack from robot for ConfirmMaintenanceReq at" + socket);
         }
 
         @Override
@@ -176,7 +175,7 @@ public class CleaningRobotGRPCUser {
 
         @Override
         public void onCompleted() {
-          l.log(String.format("Robot at %s acknowledged ConfirmMaintenanceReq, closing channel",socket));
+          // l.log(String.format("Robot at %s acknowledged ConfirmMaintenanceReq, closing channel",socket));
           channel.shutdown();
         }
       });

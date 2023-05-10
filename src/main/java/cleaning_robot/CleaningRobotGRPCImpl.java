@@ -55,7 +55,7 @@ public class CleaningRobotGRPCImpl extends CleaningRobotServiceImplBase {
 
   @Override
   public void areYouAlive(Ack request, StreamObserver<Ack> responseObserver) {
-    l.log("Got a request to know if I'm alive, I am");
+    // l.log("Got a request to know if I'm alive, I am");
     Ack response = Ack.newBuilder().build();
     responseObserver.onNext(response);
     responseObserver.onCompleted();

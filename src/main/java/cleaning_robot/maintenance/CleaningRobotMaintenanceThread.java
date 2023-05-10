@@ -6,7 +6,7 @@ import common.logger.MyLogger;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class CleaningRobotMaintenanceThread extends Thread {
-    private CleaningRobotMaintenance crm;
+    private final CleaningRobotMaintenance crm;
     Boolean isRunning;
     MyLogger l = new MyLogger("CleaningRobotMaintenanceThread");
 
@@ -17,20 +17,24 @@ public class CleaningRobotMaintenanceThread extends Thread {
 
     @Override
     public void run() {
-        while(isRunning) {
-            /*try {
-                crm.isInMaintenance.wait();
-            } catch (InterruptedException e) {
-                l.error("Failed to wait for isInMaintenance: "+e.getMessage());
-            }*/
-            try {
-                if (ThreadLocalRandom.current().nextInt(0,10) == 9) {
-                    crm.sendMaintenanceRequest();
+        try {
+            synchronized (crm) {
+                while (isRunning) {
+                    if (crm.maintenanceInstant != null) {
+                        l.log("Cleaning robot needs maintenance, waiting for it to finish");
+                        // using wait to wait until a maintenance is finished before triggering a new one
+                        crm.wait();
+                    }
+                    l.log("Checking for failures");
+                    if (ThreadLocalRandom.current().nextInt(0, 10) == 9) {
+                        l.log("FAILURE detected, going into maintenance");
+                        crm.sendMaintenanceRequest();
+                    }
+                    Thread.sleep(10 * 1000);
                 }
-                Thread.sleep(10*1000);
-            } catch (InterruptedException e) {
-                l.error("Failed to sleep for maintenance: "+e.getMessage());
             }
+        } catch (InterruptedException e) {
+            l.error("Failed to run: "+e.getMessage());
         }
     }
 
