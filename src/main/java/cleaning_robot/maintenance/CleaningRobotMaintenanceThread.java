@@ -6,7 +6,7 @@ import common.logger.MyLogger;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class CleaningRobotMaintenanceThread extends Thread {
-    private final CleaningRobotMaintenance crm;
+    public final CleaningRobotMaintenance crm;
     Boolean isRunning;
     MyLogger l = new MyLogger("CleaningRobotMaintenanceThread");
 
@@ -26,7 +26,7 @@ public class CleaningRobotMaintenanceThread extends Thread {
                         crm.wait();
                     }
                     l.log("Checking for failures");
-                    if (ThreadLocalRandom.current().nextInt(0, 10) == 9) {
+                    if (ThreadLocalRandom.current().nextInt(0, 10) >6) {
                         l.log("FAILURE detected, going into maintenance");
                         crm.sendMaintenanceRequest();
                     }
@@ -41,15 +41,8 @@ public class CleaningRobotMaintenanceThread extends Thread {
     public void triggerMaintenance() {
         crm.sendMaintenanceRequest();
     }
-    public boolean receiveMaintenanceRequest(CleaningRobotRep requestedCrp, String timestamp) {
-        return crm.receiveMaintenanceRequest(requestedCrp,timestamp);
-    }
-
-    public void receiveMaintenanceConfirmation(CleaningRobotRep confirmedCrp) {
-        crm.receiveMaintenanceConfirmation(confirmedCrp);
-    }
-    public void handleRobotLeaving(CleaningRobotRep crpToDelete) {
-        crm.handleRobotLeaving(crpToDelete);
+    public void receiveMaintenanceRequest(CleaningRobotRep requestedCrp, String timestamp) {
+        crm.receiveMaintenanceRequest(requestedCrp,timestamp);
     }
     public void stopMaintenanceThread() {
         this.isRunning = false;

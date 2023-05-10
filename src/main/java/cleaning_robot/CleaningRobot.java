@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 
 public class CleaningRobot {
     private final MyLogger l = new MyLogger("CleaningRobot");
-    private CleaningRobotMaintenanceThread crmt;
+    public CleaningRobotMaintenanceThread crmt;
     CleaningRobotRep crp;
     List<CleaningRobotRep> others;
     CleaningRobotGRPCThread crgt;
@@ -128,7 +128,7 @@ public class CleaningRobot {
         String serverAddress = "http://localhost:1337";
 
         // let maintenance thread know that a robot left
-        crmt.handleRobotLeaving(crpToDelete);
+        // crmt.handleRobotLeaving(crpToDelete);
         // Send request to be inserted in the city
         ClientResponse cr = deleteRemoveRequest(client,serverAddress, crpToDelete);
         if(cr!=null) {
@@ -154,12 +154,8 @@ public class CleaningRobot {
     public void requestMaintenance() {
         crmt.triggerMaintenance();
     }
-    public boolean receiveMaintenanceRequest(CleaningRobotRep requestedCrp, String timestamp) {
-        return crmt.receiveMaintenanceRequest(requestedCrp,timestamp);
-    }
-
-    public void receiveMaintenanceConfirmation(CleaningRobotRep confirmedCrp) {
-        crmt.receiveMaintenanceConfirmation(confirmedCrp);
+    public void receiveMaintenanceRequest(CleaningRobotRep requestedCrp, String timestamp) {
+        crmt.receiveMaintenanceRequest(requestedCrp,timestamp);
     }
 
     private ClientResponse postInsertRequest(Client client, String serverAddress){

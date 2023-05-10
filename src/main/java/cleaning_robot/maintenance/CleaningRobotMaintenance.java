@@ -40,9 +40,8 @@ public class CleaningRobotMaintenance {
     synchronized (this) {
       this.isInMaintenance = false;
       this.maintenanceInstant = null;
-      CleaningRobotGRPCUser.asyncConfirmMaintenanceRequest(crp, maintenanceQueue);
       maintenanceQueue.clear();
-      this.notify();
+      this.notifyAll();
     }
     l.log(maintenanceQueue);
 
@@ -58,54 +57,39 @@ public class CleaningRobotMaintenance {
         .collect(Collectors.toList());
     if (this.confirmationsNeeded.size()>0) {
       l.log("Need maintenance, confirmations needed: "+confirmationsNeeded);
-      CleaningRobotGRPCUser.asyncSendMaintenanceRequest(crp, maintenanceInstant,confirmationsNeeded);
+      CleaningRobotGRPCUser.asyncSendMaintenanceRequest(crp, maintenanceInstant,confirmationsNeeded, this);
     } else {
       enterMaintenance();
     }
   }
 
-  public boolean receiveMaintenanceRequest(CleaningRobotRep crpRequest, String timestamp) {
-    l.log("Received a maintenance request");
-    if(this.maintenanceInstant == null) {
-      l.log("I don't need maintenance, allow request");
-      CleaningRobotGRPCUser.asyncConfirmMaintenanceRequest(crp, Collections.singletonList(crpRequest));
-      return true;
-    }
-    Instant requestInstant = Instant.parse(timestamp);
-    boolean isBefore = requestInstant.compareTo(this.maintenanceInstant)<0;
-    if(isBefore) {
-      l.log("The other request was earlier, allow request");
-      // If request time is before mine, return true
-      CleaningRobotGRPCUser.asyncConfirmMaintenanceRequest(crp, Collections.singletonList(crpRequest));
-      return true;
-    } else {
-      l.log("My request was earlier, deny request and add to queue");
+  public void receiveMaintenanceRequest(CleaningRobotRep crpRequest, String timestamp) {
+    if(!doesOtherHasPriority(timestamp)) {
+      l.log("My request was earlier, waiting for notify");
       // If request time is after mine, return false and add requester to maintenanceQueue
-      maintenanceQueue.add(crpRequest);
-      l.log("Current maintenanceQueue: "+maintenanceQueue);
-      return false;
+      synchronized (this) {
+        try {
+          this.wait(30_000);
+        } catch (InterruptedException e) {
+          throw new RuntimeException(e);
+        }
+      }
     }
   }
 
-  public void receiveMaintenanceConfirmation(CleaningRobotRep confirmedCrp) {
-    l.log("Received an allow to go into maintenance: "+confirmedCrp);
-    synchronized (this) {
-      // this whole block needs to be synchronized otherwise the enterMaintenance might get called twice
-      boolean removed = this.confirmationsNeeded.removeIf(cleaningRobotRep -> cleaningRobotRep.ID.equals(confirmedCrp.ID));
-      if(!removed) {
-        l.error(confirmedCrp.toString()+" was not removed");
-        l.error("No elements were removed from confirmations");
-      }
-      l.log("Missing allows: "+this.confirmationsNeeded);
-      if(this.confirmationsNeeded.isEmpty()) {
-        l.log("Going into maintenance");
-        enterMaintenance();
-      }
+  public void confirmMaintenanceRequest(CleaningRobotRep crpConfirm) {
+    this.confirmationsNeeded.removeIf(c->c.ID.equals(crpConfirm.ID));
+    if(this.confirmationsNeeded.isEmpty()) {
+      enterMaintenance();
     }
   }
-  public void handleRobotLeaving(CleaningRobotRep leftCrp) {
-    l.log("A robot left, consider as if he gave confirmation");
-    receiveMaintenanceConfirmation(leftCrp);
-    this.maintenanceQueue.removeIf(cleaningRobotRep -> cleaningRobotRep.ID.equals(leftCrp.ID));
+
+  public boolean doesOtherHasPriority(String time) {
+    if (maintenanceInstant == null) {
+      l.log("I don't need maintenance, go ahead");
+      return true;
+    }
+    Instant requestInstant = Instant.parse(time);
+    return requestInstant.compareTo(this.maintenanceInstant)<0;
   }
 }

@@ -38,7 +38,7 @@ public class CleaningRobotGRPCImpl extends CleaningRobotServiceImplBase {
   }
 
   @Override
-  public void leaving(CleaningRobotServiceOuterClass.CleaningRobotRep request, StreamObserver<Ack> responseObserver) {
+  public void leaving(CRRepService request, StreamObserver<Ack> responseObserver) {
     l.log(String.format("Robot %s is asking to leave the city",request.getID()));
     CleaningRobotRep toRemoveCrp = new CleaningRobotRep(
             request.getID(),
@@ -62,36 +62,49 @@ public class CleaningRobotGRPCImpl extends CleaningRobotServiceImplBase {
   }
 
   @Override
-  public void maintenanceNeed(MaintenanceReq request, StreamObserver<Ack> responseObserver) {
+  public void maintenanceNeed(MaintenanceReq request, StreamObserver<CRRepService> responseObserver) {
     l.log("Got a maintenance request");
-    Ack response = Ack.newBuilder().build();
-    responseObserver.onNext(response);
+
+
     CleaningRobotRep requesterCRP = new CleaningRobotRep(
         request.getCrp().getID(),
         request.getCrp().getIP(),
         request.getCrp().getPort());
+    String time = request.getTime();
     // needed because it might start some outbound rpc requests
-    Context ctx = Context.current().fork();
-    ctx.run(() -> cr.receiveMaintenanceRequest(requesterCRP,request.getTime()));
-    responseObserver.onCompleted();
-  }
+    // this should answer only if it doesn't need maintenance or if the maintenance is done
 
-  @Override
-  public void confirmMaintenance(CleaningRobotServiceOuterClass.CleaningRobotRep request, StreamObserver<Ack> responseObserver) {
-    l.log("Got a confirmation of maintenance request");
-    Ack response = Ack.newBuilder().build();
+    this.cr.crmt.receiveMaintenanceRequest(requesterCRP,time);
+    CRRepService response = CRRepService.newBuilder()
+            .setID(cr.crp.ID).setIP(cr.crp.IPAddress).setPort(cr.crp.interactionPort).build();
     responseObserver.onNext(response);
-    // needed because it will start some outbound rpc requests that will fail
-    // if this thread ends
-    Context ctx = Context.current().fork();
-    ctx.run(() -> {
-      CleaningRobotRep confirmedCrp = new CleaningRobotRep(
-          request.getID(),
-          request.getIP(),
-          request.getPort()
-      );
-      cr.receiveMaintenanceConfirmation(confirmedCrp);
-    });
     responseObserver.onCompleted();
+    /*synchronized (cr.crmt.crm) {
+      try {
+
+        if(!this.cr.crmt.crm.doesOtherHasPriority(time)) {
+          l.log("Starting to wait for maintenance");
+          this.cr.crmt.wait();
+          l.log("Wait is done, answering to maintenance requester");
+          CRRepService response = CRRepService.newBuilder()
+                  .setID(cr.crp.ID).setIP(cr.crp.IPAddress).setPort(cr.crp.interactionPort).build();
+          responseObserver.onNext(response);
+        } else {
+          l.log("I don't need maintenance or you are before me, go ahead");
+          CRRepService response = CRRepService.newBuilder()
+                  .setID(cr.crp.ID).setIP(cr.crp.IPAddress).setPort(cr.crp.interactionPort).build();
+          responseObserver.onNext(response);
+        }
+
+      } catch (InterruptedException e) {
+        throw new RuntimeException(e);
+      }
+    }*/
+
+
+
+//    Context ctx = Context.current().fork();
+//    ctx.run(() -> cr.receiveMaintenanceRequest(requesterCRP,request.getTime()));
+//    responseObserver.onCompleted();
   }
 }

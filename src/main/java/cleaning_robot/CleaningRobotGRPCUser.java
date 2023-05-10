@@ -1,5 +1,6 @@
 package cleaning_robot;
 
+import cleaning_robot.maintenance.CleaningRobotMaintenance;
 import common.city.City;
 import common.logger.MyLogger;
 import io.grpc.ManagedChannel;
@@ -7,6 +8,7 @@ import io.grpc.ManagedChannelBuilder;
 import io.grpc.stub.StreamObserver;
 import proto.CleaningRobotServiceGrpc;
 import proto.CleaningRobotServiceOuterClass;
+import proto.CleaningRobotServiceOuterClass.CRRepService;
 
 import java.time.Instant;
 import java.util.List;
@@ -22,8 +24,8 @@ public class CleaningRobotGRPCUser {
           .setX(x)
           .setY(y)
           .build();
-    CleaningRobotServiceOuterClass.CleaningRobotRep crpService =
-        CleaningRobotServiceOuterClass.CleaningRobotRep.newBuilder()
+    CRRepService crpService =
+            CRRepService.newBuilder()
                 .setID(crp.ID).setIP(crp.IPAddress).setPort(crp.interactionPort).build();
     CleaningRobotServiceOuterClass.Introduction request =
         CleaningRobotServiceOuterClass.Introduction.newBuilder()
@@ -50,8 +52,8 @@ public class CleaningRobotGRPCUser {
   }
 
   public static void asyncLeaveCity(List<String> robotsSockets, CleaningRobotRep crp) {
-    CleaningRobotServiceOuterClass.CleaningRobotRep crpService =
-            CleaningRobotServiceOuterClass.CleaningRobotRep.newBuilder()
+    CRRepService crpService =
+            CRRepService.newBuilder()
                     .setID(crp.ID).setIP(crp.IPAddress).setPort(crp.interactionPort).build();
     // notify other robots of leaving
     for (String socket : robotsSockets) {
@@ -110,7 +112,8 @@ public class CleaningRobotGRPCUser {
 
   public static void asyncSendMaintenanceRequest(CleaningRobotRep crp,
                                                  Instant timestamp,
-                                                 List<CleaningRobotRep> otherRobots) {
+                                                 List<CleaningRobotRep> otherRobots,
+                                                 CleaningRobotMaintenance crm) {
     // this should send a maintenance request to each other member of the city
     // and when an answer is received call a method to confirm that an OK was received
     List<String> robotsSockets = otherRobots.stream()
@@ -121,8 +124,8 @@ public class CleaningRobotGRPCUser {
     for (String socket : robotsSockets) {
       final ManagedChannel channel = ManagedChannelBuilder.forTarget(socket).usePlaintext().build();
       CleaningRobotServiceGrpc.CleaningRobotServiceStub stub = CleaningRobotServiceGrpc.newStub(channel);
-      CleaningRobotServiceOuterClass.CleaningRobotRep serviceCrp =
-          CleaningRobotServiceOuterClass.CleaningRobotRep.newBuilder()
+      CRRepService serviceCrp =
+              CRRepService.newBuilder()
               .setID(crp.ID).setPort(crp.interactionPort).setIP(crp.IPAddress)
               .build();
       CleaningRobotServiceOuterClass.MaintenanceReq maintenanceReq =
@@ -130,9 +133,15 @@ public class CleaningRobotGRPCUser {
             .setCrp(serviceCrp)
             .setTime(timestamp.toString())
             .build();
-      stub.maintenanceNeed(maintenanceReq, new StreamObserver<CleaningRobotServiceOuterClass.Ack>() {
+      stub.maintenanceNeed(maintenanceReq, new StreamObserver<CRRepService>() {
         @Override
-        public void onNext(CleaningRobotServiceOuterClass.Ack value) {
+        public void onNext(CRRepService value) {
+          CleaningRobotRep confirmed = new CleaningRobotRep(
+                  value.getID(),
+                  value.getIP(),
+                  value.getPort()
+          );
+          crm.confirmMaintenanceRequest(confirmed);
           // l.log("Received Ack from robot for MaintenanceReq at" + socket);
         }
 
@@ -144,38 +153,6 @@ public class CleaningRobotGRPCUser {
         @Override
         public void onCompleted() {
           // l.log(String.format("Robot at %s acknowledged maintenance request, closing channel",socket));
-          channel.shutdown();
-        }
-      });
-    }
-  }
-  public static void asyncConfirmMaintenanceRequest(CleaningRobotRep crp, List<CleaningRobotRep> crpList) {
-    // sends an ACK to all the robots that asked to go into maintenance
-    // while I was into maintenance or my timestamp was earlier
-    List<String> robotsSockets = crpList.stream().map(c -> c.IPAddress + ':' + c.interactionPort)
-        .collect(Collectors.toList());
-    // notify other robots of leaving
-    for (String socket : robotsSockets) {
-      final ManagedChannel channel = ManagedChannelBuilder.forTarget(socket).usePlaintext().build();
-      CleaningRobotServiceGrpc.CleaningRobotServiceStub stub = CleaningRobotServiceGrpc.newStub(channel);
-      CleaningRobotServiceOuterClass.CleaningRobotRep serviceCrp =
-          CleaningRobotServiceOuterClass.CleaningRobotRep.newBuilder()
-              .setID(crp.ID).setPort(crp.interactionPort).setIP(crp.IPAddress)
-              .build();
-      stub.confirmMaintenance(serviceCrp, new StreamObserver<CleaningRobotServiceOuterClass.Ack>() {
-        @Override
-        public void onNext(CleaningRobotServiceOuterClass.Ack value) {
-          // l.log("Received Ack from robot for ConfirmMaintenanceReq at" + socket);
-        }
-
-        @Override
-        public void onError(Throwable t) {
-          l.error("Error while waiting for ConfirmMaintenanceReq Ack: "+t.getMessage());
-        }
-
-        @Override
-        public void onCompleted() {
-          // l.log(String.format("Robot at %s acknowledged ConfirmMaintenanceReq, closing channel",socket));
           channel.shutdown();
         }
       });
