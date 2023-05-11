@@ -3,7 +3,7 @@ package cleaning_robot.maintenance;
 import cleaning_robot.CleaningRobot;
 import cleaning_robot.CleaningRobotGRPCUser;
 import cleaning_robot.CleaningRobotRep;
-import common.city.City;
+import common.city.SimpleCity;
 import common.logger.MyLogger;
 
 import java.time.Instant;
@@ -45,8 +45,6 @@ public class CleaningRobotMaintenance {
       maintenanceQueue.clear();
       this.notifyAll();
     }
-    l.log(maintenanceQueue);
-
   }
   public void sendMaintenanceRequest() {
     if(maintenanceInstant!=null) {
@@ -54,7 +52,7 @@ public class CleaningRobotMaintenance {
       throw new RuntimeException("This function should be called only one");
     }
     this.maintenanceInstant = Instant.now();
-    this.confirmationsNeeded = City.getCity().getRobotsList().stream()
+    this.confirmationsNeeded = SimpleCity.getCity().getRobotsList().stream()
         .filter(r->!r.ID.equals(crp.ID))
         .collect(Collectors.toList());
     if (this.confirmationsNeeded.size()>0) {
@@ -66,23 +64,22 @@ public class CleaningRobotMaintenance {
   }
 
   public synchronized void receiveMaintenanceRequest(CleaningRobotRep crpRequest, String timestamp) {
-    l.log("receiveMaintenanceRequest");
     if(!doesOtherHasPriority(timestamp)) {
-      l.log("My request was earlier, waiting for notify");
+      l.log("My request was earlier, waiting for notify before going on and answering request");
       // If request time is after mine, return false and add requester to maintenanceQueue
       try {
         this.wait();
       } catch (InterruptedException e) {
         throw new RuntimeException(e);
       }
+    } else {
+      l.log("You either have priority or I don't need maintenance, go ahead");
     }
-    l.log("Other was before, giving permission");
   }
 
   public void confirmMaintenanceRequest(CleaningRobotRep crpConfirm) {
     l.log("Received confirmation from: "+crpConfirm);
-    l.log(this.confirmationsNeeded.removeIf(c->c.ID.equals(crpConfirm.ID)));
-    l.log(confirmationsNeeded);
+    this.confirmationsNeeded.removeIf(c->c.ID.equals(crpConfirm.ID));
     if(this.confirmationsNeeded.isEmpty()) {
       enterMaintenance();
     }
@@ -90,7 +87,6 @@ public class CleaningRobotMaintenance {
 
   public boolean doesOtherHasPriority(String time) {
     if (maintenanceInstant == null) {
-      l.log("I don't need maintenance, go ahead");
       return true;
     }
     Instant requestInstant = Instant.parse(time);

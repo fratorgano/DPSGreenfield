@@ -122,30 +122,28 @@ public class CleaningRobot {
         }
     }
 
-    public boolean removeFromCityAndNotifyServer(CleaningRobotRep crpToDelete) {
+    public void removeFromCityAndNotifyServer(CleaningRobotRep crpToDelete) {
         l.error("Removing from city: "+crpToDelete);
         SimpleCity.getCity().removeRobot(crpToDelete);
         // l.log("Updated city: "+SimpleCity.getCity());
         Client client = Client.create();
         String serverAddress = "http://localhost:1337";
 
-        // let maintenance thread know that a robot left
-        crmt.crm.handleRobotLeaving(crpToDelete);
         // Send request to be inserted in the city
         ClientResponse cr = deleteRemoveRequest(client,serverAddress, crpToDelete);
         if(cr!=null) {
             l.log("Answer to deletion received: "+cr);
             if (cr.getStatus() == ClientResponse.Status.OK.getStatusCode()) {
                 l.log("Removed unresponsive node from server");
-                return true;
             } else {
                 l.error("Server didn't remove node, it was probably already removed");
-                return false;
             }
         } else {
             l.error("No response received from server");
-            return false;
         }
+
+        // let maintenance thread know that a robot left
+        crmt.crm.handleRobotLeaving(crpToDelete);
     }
     private void startHeartbeats() {
         this.crht = new CleaningRobotHeartbeatThread(this);
