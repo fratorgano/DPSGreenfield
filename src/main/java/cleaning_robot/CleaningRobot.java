@@ -1,6 +1,9 @@
 package cleaning_robot;
 
 import cleaning_robot.maintenance.CleaningRobotMaintenanceThread;
+import cleaning_robot.mqtt.BufferImpl;
+import cleaning_robot.mqtt.CleaningRobotMqttThread;
+import cleaning_robot.simulator.PM10Simulator;
 import com.google.gson.Gson;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientHandlerException;
@@ -16,6 +19,9 @@ import java.util.Optional;
 
 public class CleaningRobot {
     private final MyLogger l = new MyLogger("CleaningRobot");
+    private CleaningRobotMqttThread mqttThread;
+    private BufferImpl sensorBuffer;
+    private PM10Simulator sensorSimulatorThread;
     private String district;
     public CleaningRobotMaintenanceThread crmt;
     CleaningRobotRep crp;
@@ -50,6 +56,17 @@ public class CleaningRobot {
             l.log("Starting maintenance thread");
             this.crmt = new CleaningRobotMaintenanceThread(this.crp, this);
             crmt.start();
+
+            l.log("Starting sensor simulator");
+            this.sensorBuffer = new BufferImpl();
+            this.sensorSimulatorThread = new PM10Simulator(sensorBuffer);
+            this.sensorSimulatorThread.start();
+            l.log("Starting mqtt thread");
+            this.mqttThread = new CleaningRobotMqttThread(
+                    "tcp://localhost:1883",
+                    "greenfield/pollution/"+this.district,
+                    this.sensorBuffer);
+            this.mqttThread.start();
 
             CleaningRobotCLIThread crct = new CleaningRobotCLIThread(this);
             crct.start();
