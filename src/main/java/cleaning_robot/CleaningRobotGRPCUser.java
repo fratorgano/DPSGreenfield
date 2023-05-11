@@ -1,7 +1,7 @@
 package cleaning_robot;
 
 import cleaning_robot.maintenance.CleaningRobotMaintenance;
-import common.city.City;
+import common.city.SimpleCity;
 import common.logger.MyLogger;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
@@ -12,7 +12,6 @@ import proto.CleaningRobotServiceOuterClass.CRRepService;
 
 import java.time.Instant;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class CleaningRobotGRPCUser {
   static MyLogger l = new MyLogger("RobotGRPCUser");
@@ -85,7 +84,7 @@ public class CleaningRobotGRPCUser {
 
   public static void asyncHeartbeat(CleaningRobot me) {
     CleaningRobotServiceOuterClass.Ack response = CleaningRobotServiceOuterClass.Ack.newBuilder().build();
-    List<CleaningRobotRep> robotSockets = City.getCity().getRobotsList();
+    List<CleaningRobotRep> robotSockets = SimpleCity.getCity().getRobotsList();
     // notify other robots of leaving
     for (CleaningRobotRep crp : robotSockets) {
       if (crp.ID.equals(me.crp.ID)) continue;
@@ -102,7 +101,7 @@ public class CleaningRobotGRPCUser {
         public void onError(Throwable t) {
           l.error("Error while waiting for areYouAlive Ack: "+t.getMessage());
           me.removeFromCityAndNotifyServer(crp);
-          l.log("Updated city: "+City.getCity());
+          l.log("Updated city: "+SimpleCity.getCity());
         }
 
         @Override

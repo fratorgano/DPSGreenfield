@@ -1,19 +1,18 @@
 package cleaning_robot;
 
 import cleaning_robot.maintenance.CleaningRobotMaintenanceThread;
-import common.city.City;
 import com.google.gson.Gson;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientHandlerException;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 import common.city.Position;
+import common.city.SimpleCity;
 import common.logger.MyLogger;
 
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 public class CleaningRobot {
     private final MyLogger l = new MyLogger("CleaningRobot");
@@ -32,9 +31,9 @@ public class CleaningRobot {
             others = joined.get().robots;
             // initialize a city with only one district, we don't care about which
             // district they are in
-            City.getCity(1);
+            SimpleCity.getCity();
             for (CleaningRobotRep other : others) {
-                City.getCity().addRobot(other);
+                SimpleCity.getCity().addRobot(other);
             }
             this.crp.position = new Position(joined.get().x,joined.get().y);
             l.log(String.format("I'm at position: (%d,%d)",this.crp.position.x,this.crp.position.y));
@@ -78,7 +77,7 @@ public class CleaningRobot {
     }
 
     private void introduceMyself() {
-        City simpleCity = City.getCity();
+        SimpleCity simpleCity = SimpleCity.getCity();
         for (CleaningRobotRep cleaningRobotRep : simpleCity.getRobotsList()) {
             if (Objects.equals(cleaningRobotRep.interactionPort, crp.interactionPort)) continue;
             String socket = cleaningRobotRep.IPAddress + ':' + cleaningRobotRep.interactionPort;
@@ -98,7 +97,7 @@ public class CleaningRobot {
     public void leaveCity() {
         // leaves the city in a controlled way
         l.log("I'm gonna leave the city");
-        List<CleaningRobotRep> robots = City.getCity().getRobotsList();
+        List<CleaningRobotRep> robots = SimpleCity.getCity().getRobotsList();
         CleaningRobotGRPCUser.asyncLeaveCity(robots,this.crp, this);
 
         Client client = Client.create();
@@ -122,8 +121,8 @@ public class CleaningRobot {
 
     public boolean removeFromCityAndNotifyServer(CleaningRobotRep crpToDelete) {
         l.error("Removing from city: "+crpToDelete);
-        City.getCity().removeRobot(crpToDelete);
-        // l.log("Updated city: "+City.getCity());
+        SimpleCity.getCity().removeRobot(crpToDelete);
+        // l.log("Updated city: "+SimpleCity.getCity());
         Client client = Client.create();
         String serverAddress = "http://localhost:1337";
 

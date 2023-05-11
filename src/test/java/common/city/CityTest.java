@@ -1,8 +1,6 @@
 package common.city;
 
 import cleaning_robot.CleaningRobotRep;
-import common.city.City;
-import common.city.District;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -13,7 +11,7 @@ class CityTest {
   @BeforeEach
   void setUp() {
     // so that singleton is reset before each test
-    City.getCity().buildCity();
+    City.getCity().buildCity(4);
   }
 
   @Test

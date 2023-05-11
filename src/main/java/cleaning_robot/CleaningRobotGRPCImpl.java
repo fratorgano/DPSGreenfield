@@ -1,12 +1,10 @@
 package cleaning_robot;
 
-import common.city.City;
+import common.city.SimpleCity;
 import common.city.Position;
 import common.logger.MyLogger;
-import io.grpc.Context;
 import io.grpc.stub.StreamObserver;
 import proto.CleaningRobotServiceGrpc.CleaningRobotServiceImplBase;
-import proto.CleaningRobotServiceOuterClass;
 import proto.CleaningRobotServiceOuterClass.*;
 
 public class CleaningRobotGRPCImpl extends CleaningRobotServiceImplBase {
@@ -32,8 +30,8 @@ public class CleaningRobotGRPCImpl extends CleaningRobotServiceImplBase {
         presentation.getPosition().getX(),
         presentation.getPosition().getY()
     );
-    City.getCity().addRobot(crp);
-    l.log("Updated city: "+City.getCity());
+    SimpleCity.getCity().addRobot(crp);
+    l.log("Updated city: "+SimpleCity.getCity());
     responseObserver.onCompleted();
   }
 
@@ -45,8 +43,8 @@ public class CleaningRobotGRPCImpl extends CleaningRobotServiceImplBase {
             request.getIP(),
             request.getPort()
     );
-    l.log("Removing it from City");
-    City.getCity().removeRobot(toRemoveCrp);
+    l.log("Removing it from SimpleCity");
+    SimpleCity.getCity().removeRobot(toRemoveCrp);
 
     Ack response = Ack.newBuilder().build();
     responseObserver.onNext(response);

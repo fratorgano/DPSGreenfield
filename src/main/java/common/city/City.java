@@ -10,21 +10,14 @@ public class City {
   private static City c;
   List<District> districtList = new ArrayList<>();
   MyLogger logger = new MyLogger("City");
-
-  public synchronized static City getCity(int districtNumber) {
-    if (c==null) {
-      c = new City(districtNumber);
-    }
-    return c;
-  }
   public synchronized static City getCity() {
     if (c==null) {
-      c = new City(4);
+      c = new City();
     }
     return c;
   }
-  City(int districtNumber) {
-    buildCity(districtNumber);
+  City() {
+    buildCity(4);
   }
 
   public synchronized boolean addRobot(CleaningRobotRep crp) {
@@ -62,10 +55,6 @@ public class City {
       robotsList.addAll(district.getCleaningRobotRepList());
     }
     return robotsList;
-  }
-
-  synchronized void buildCity() {
-    buildCity(4);
   }
   synchronized void buildCity(int n) {
     // mainly used in tests to reset singleton after each test
