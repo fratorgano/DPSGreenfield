@@ -79,4 +79,23 @@ class CityTest {
   @AfterEach
   void tearDown() {
   }
+
+  @Test
+  void getDistrictName() {
+    String actual = City.getDistrictName(1,2);
+    String expected = "district-1";
+    Assertions.assertEquals(expected,actual);
+    actual = City.getDistrictName(4,4);
+    expected = "district-1";
+    Assertions.assertEquals(expected,actual);
+    actual = City.getDistrictName(4,5);
+    expected = "district-2";
+    Assertions.assertEquals(expected,actual);
+    actual = City.getDistrictName(5,4);
+    expected = "district-4";
+    Assertions.assertEquals(expected,actual);
+    actual = City.getDistrictName(5,5);
+    expected = "district-3";
+    Assertions.assertEquals(expected,actual);
+  }
 }

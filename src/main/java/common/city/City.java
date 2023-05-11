@@ -64,6 +64,23 @@ public class City {
     }
   }
 
+  public static String getDistrictName(int x,int y) {
+    if (x<=4) {
+      if(y<=4) {
+        return "district-1";
+      } else {
+        return "district-2";
+      }
+    } else {
+      if(y<=4) {
+        return "district-4";
+      } else {
+        return "district-3";
+      }
+    }
+
+  }
+
   @Override
   public String toString() {
     return "City{" +

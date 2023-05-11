@@ -16,6 +16,7 @@ import java.util.Optional;
 
 public class CleaningRobot {
     private final MyLogger l = new MyLogger("CleaningRobot");
+    private String district;
     public CleaningRobotMaintenanceThread crmt;
     CleaningRobotRep crp;
     List<CleaningRobotRep> others;
@@ -29,6 +30,8 @@ public class CleaningRobot {
         if(joined.isPresent()) {
             l.log("Joined the city");
             others = joined.get().robots;
+            this.district = SimpleCity.getDistrictName(joined.get().x,joined.get().y);
+            l.log("got district: "+this.district);
             // initialize a city with only one district, we don't care about which
             // district they are in
             SimpleCity.getCity();
