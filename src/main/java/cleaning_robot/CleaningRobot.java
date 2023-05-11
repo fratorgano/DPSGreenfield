@@ -44,9 +44,9 @@ public class CleaningRobot {
             l.log("Introducing myself to others");
             introduceMyself();
             l.log("Starting heartbeat thread");
-            startHeartbeats();
+            // startHeartbeats();
             l.log("Starting maintenance thread");
-            this.crmt = new CleaningRobotMaintenanceThread(this.crp);
+            this.crmt = new CleaningRobotMaintenanceThread(this.crp, this);
             crmt.start();
 
             CleaningRobotCLIThread crct = new CleaningRobotCLIThread(this);
@@ -87,7 +87,9 @@ public class CleaningRobot {
                     socket,
                     crp.position.x,
                     crp.position.y,
-                    crp
+                    crp,
+                    cleaningRobotRep,
+                    this
             );
         }
         l.log("Introductions are done");
@@ -96,10 +98,8 @@ public class CleaningRobot {
     public void leaveCity() {
         // leaves the city in a controlled way
         l.log("I'm gonna leave the city");
-        List<String> robotSockets = City.getCity().getRobotsList().stream().map(
-                crp->crp.IPAddress+':'+crp.interactionPort
-        ).collect(Collectors.toList());
-        CleaningRobotGRPCUser.asyncLeaveCity(robotSockets,this.crp);
+        List<CleaningRobotRep> robots = City.getCity().getRobotsList();
+        CleaningRobotGRPCUser.asyncLeaveCity(robots,this.crp, this);
 
         Client client = Client.create();
         String serverAddress = "http://localhost:1337";
@@ -123,12 +123,12 @@ public class CleaningRobot {
     public boolean removeFromCityAndNotifyServer(CleaningRobotRep crpToDelete) {
         l.error("Removing from city: "+crpToDelete);
         City.getCity().removeRobot(crpToDelete);
-        l.log("Updated city: "+City.getCity());
+        // l.log("Updated city: "+City.getCity());
         Client client = Client.create();
         String serverAddress = "http://localhost:1337";
 
         // let maintenance thread know that a robot left
-        // crmt.handleRobotLeaving(crpToDelete);
+        crmt.crm.handleRobotLeaving(crpToDelete);
         // Send request to be inserted in the city
         ClientResponse cr = deleteRemoveRequest(client,serverAddress, crpToDelete);
         if(cr!=null) {

@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 
 public class CleaningRobotGRPCUser {
   static MyLogger l = new MyLogger("RobotGRPCUser");
-  public static void asyncPresentation(String socket, int x, int y, CleaningRobotRep crp) {
+  public static void asyncPresentation(String socket, int x, int y, CleaningRobotRep crp,CleaningRobotRep toCrp, CleaningRobot me) {
     final ManagedChannel channel = ManagedChannelBuilder.forTarget(socket).usePlaintext().build();
     CleaningRobotServiceGrpc.CleaningRobotServiceStub stub = CleaningRobotServiceGrpc.newStub(channel);
     CleaningRobotServiceOuterClass.Position position =
@@ -41,6 +41,7 @@ public class CleaningRobotGRPCUser {
       @Override
       public void onError(Throwable t) {
         l.error("Error while waiting for presentation Ack: "+t.getMessage());
+        me.removeFromCityAndNotifyServer(toCrp);
       }
 
       @Override
@@ -51,12 +52,14 @@ public class CleaningRobotGRPCUser {
     });
   }
 
-  public static void asyncLeaveCity(List<String> robotsSockets, CleaningRobotRep crp) {
+  public static void asyncLeaveCity(List<CleaningRobotRep> robots, CleaningRobotRep crp, CleaningRobot me) {
     CRRepService crpService =
             CRRepService.newBuilder()
                     .setID(crp.ID).setIP(crp.IPAddress).setPort(crp.interactionPort).build();
     // notify other robots of leaving
-    for (String socket : robotsSockets) {
+    for (CleaningRobotRep c : robots) {
+      if(c.ID.equals(crp.ID)) continue;
+      String socket = c.IPAddress+':'+c.interactionPort;
       final ManagedChannel channel = ManagedChannelBuilder.forTarget(socket).usePlaintext().build();
       CleaningRobotServiceGrpc.CleaningRobotServiceStub stub = CleaningRobotServiceGrpc.newStub(channel);
       stub.leaving(crpService, new StreamObserver<CleaningRobotServiceOuterClass.Ack>() {
@@ -68,6 +71,7 @@ public class CleaningRobotGRPCUser {
         @Override
         public void onError(Throwable t) {
           l.error("Error while waiting for leaving Ack: "+t.getMessage());
+          me.removeFromCityAndNotifyServer(c);
         }
 
         @Override
@@ -113,15 +117,13 @@ public class CleaningRobotGRPCUser {
   public static void asyncSendMaintenanceRequest(CleaningRobotRep crp,
                                                  Instant timestamp,
                                                  List<CleaningRobotRep> otherRobots,
-                                                 CleaningRobotMaintenance crm) {
+                                                 CleaningRobotMaintenance crm,
+                                                 CleaningRobot me) {
     // this should send a maintenance request to each other member of the city
     // and when an answer is received call a method to confirm that an OK was received
-    List<String> robotsSockets = otherRobots.stream()
-        .filter(c->!c.ID.equals(crp.ID))
-        .map(c -> c.IPAddress + ':' + c.interactionPort)
-        .collect(Collectors.toList());
     // notify other robots of leaving
-    for (String socket : robotsSockets) {
+    for (CleaningRobotRep c : otherRobots) {
+      String socket = c.IPAddress + ':' + c.interactionPort;
       final ManagedChannel channel = ManagedChannelBuilder.forTarget(socket).usePlaintext().build();
       CleaningRobotServiceGrpc.CleaningRobotServiceStub stub = CleaningRobotServiceGrpc.newStub(channel);
       CRRepService serviceCrp =
@@ -148,6 +150,7 @@ public class CleaningRobotGRPCUser {
         @Override
         public void onError(Throwable t) {
           l.error("Error while waiting for sendMaintenanceRequest Ack: "+t.getMessage());
+          me.removeFromCityAndNotifyServer(c);
         }
 
         @Override

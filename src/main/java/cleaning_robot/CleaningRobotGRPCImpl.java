@@ -73,8 +73,9 @@ public class CleaningRobotGRPCImpl extends CleaningRobotServiceImplBase {
     String time = request.getTime();
     // needed because it might start some outbound rpc requests
     // this should answer only if it doesn't need maintenance or if the maintenance is done
-
+    l.log("Before");
     this.cr.crmt.receiveMaintenanceRequest(requesterCRP,time);
+    l.log("After");
     CRRepService response = CRRepService.newBuilder()
             .setID(cr.crp.ID).setIP(cr.crp.IPAddress).setPort(cr.crp.interactionPort).build();
     responseObserver.onNext(response);
