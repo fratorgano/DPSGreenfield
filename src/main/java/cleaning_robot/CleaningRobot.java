@@ -65,7 +65,8 @@ public class CleaningRobot {
             this.mqttThread = new CleaningRobotMqttThread(
                     "tcp://localhost:1883",
                     "greenfield/pollution/"+this.district,
-                    this.sensorBuffer);
+                    this.sensorBuffer,
+                    crp);
             this.mqttThread.start();
 
             CleaningRobotCLIThread crct = new CleaningRobotCLIThread(this);

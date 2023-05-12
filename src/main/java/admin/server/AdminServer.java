@@ -1,5 +1,6 @@
 package admin.server;
 
+import admin.server.mqtt.DataStorage;
 import admin.server.mqtt.MqttThread;
 import admin.server.rest.RestThread;
 import common.logger.MyLogger;
@@ -7,6 +8,7 @@ import common.logger.MyLogger;
 public class AdminServer {
     MqttThread mqttThread;
     RestThread restThread;
+    DataStorage ds = DataStorage.getInstance();
     private final MyLogger l = new MyLogger("AdminServer");
 
     AdminServer(String host, Integer restThreadPort, String mqttBroker) {

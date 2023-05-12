@@ -34,7 +34,8 @@ public class MqttThread extends Thread {
                 public void messageArrived(String topic, MqttMessage message) throws Exception {
                     l.log("Topic: "+topic+", Message:"+message);
                     if(topic.contains("greenfield/pollution/")) {
-                        l.log(MqttReading.fromJson(message.toString()));
+                        MqttReading mqttReading = MqttReading.fromJson(message.toString());
+                        DataStorage.getInstance().addData(mqttReading != null ? mqttReading.crpID : null,mqttReading);
                     }
 
                 }

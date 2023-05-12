@@ -1,5 +1,6 @@
 package cleaning_robot.mqtt;
 
+import cleaning_robot.CleaningRobotRep;
 import common.logger.MyLogger;
 import common.mqtt.MqttReading;
 import org.eclipse.paho.client.mqttv3.*;
@@ -13,15 +14,17 @@ public class CleaningRobotMqttThread extends Thread{
     private final String topic;
     private final String clientId;
     private final BufferImpl buffer;
+    private final CleaningRobotRep crp;
     private MqttConnectOptions connOpts;
     private MqttAsyncClient mqttClient;
     private final MyLogger l = new MyLogger("MQTTThread");
 
-    public CleaningRobotMqttThread(String broker, String topic, BufferImpl buffer) {
+    public CleaningRobotMqttThread(String broker, String topic, BufferImpl buffer, CleaningRobotRep crp) {
         this.brokerString = broker;
         this.topic = topic;
         this.clientId = MqttClient.generateClientId();
         this.buffer = buffer;
+        this.crp = crp;
 
         try {
             this.mqttClient = new MqttAsyncClient(broker, clientId, new MemoryPersistence());
@@ -49,7 +52,7 @@ public class CleaningRobotMqttThread extends Thread{
                 Thread.sleep(15*1000);
                 List<Double> averages = buffer.readAllAveragesAndClean();
                 l.log("Current averages:"+averages);
-                MqttReading reading = new MqttReading(averages, Instant.now().toString());
+                MqttReading reading = new MqttReading(averages, Instant.now().toString(),crp.ID);
                 String payload = reading.toJson();
                 l.log(payload);
                 MqttMessage message = new MqttMessage(payload.getBytes());
