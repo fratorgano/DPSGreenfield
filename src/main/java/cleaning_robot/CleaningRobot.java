@@ -51,7 +51,7 @@ public class CleaningRobot {
             crgt.start();
             l.log("Introducing myself to others");
             introduceMyself();
-            l.log("Starting heartbeat thread");
+            // l.log("Starting heartbeat thread");
             // startHeartbeats();
             l.log("Starting maintenance thread");
             this.crmt = new CleaningRobotMaintenanceThread(this.crp, this);
@@ -119,7 +119,7 @@ public class CleaningRobot {
         // leaves the city in a controlled way
         l.log("I'm gonna leave the city");
         List<CleaningRobotRep> robots = SimpleCity.getCity().getRobotsList();
-        CleaningRobotGRPCUser.asyncLeaveCity(robots,this.crp, this);
+        CleaningRobotGRPCUser.asyncLeaveCity(robots,this.crp);
 
         Client client = Client.create();
         String serverAddress = "http://localhost:1337";
@@ -140,7 +140,7 @@ public class CleaningRobot {
         }
     }
 
-    public void removeFromCityAndNotifyServer(CleaningRobotRep crpToDelete) {
+    public void removeOtherFromCity (CleaningRobotRep crpToDelete) {
         l.error("Removing from city: "+crpToDelete);
         SimpleCity.getCity().removeRobot(crpToDelete);
         // l.log("Updated city: "+SimpleCity.getCity());
@@ -159,6 +159,12 @@ public class CleaningRobot {
         } else {
             l.error("No response received from server");
         }
+
+        // notify others that a node was crashed
+        l.log("Notifying that "+crpToDelete.ID + " was removed");
+        CleaningRobotGRPCUser.asyncLeaveCity(
+            SimpleCity.getCity().getRobotsList(),
+            crpToDelete);
 
         // let maintenance thread know that a robot left
         crmt.crm.handleRobotLeaving(crpToDelete);
@@ -194,7 +200,7 @@ public class CleaningRobot {
         String input = new Gson().toJson(crp);
         l.log(input);
         try {
-            l.log("Sending DELETE remove request for "+crp);
+            l.log("Sending DELETE remove request for "+crp.ID);
             return webResource.type("application/json").delete(ClientResponse.class, input);
         } catch (ClientHandlerException e) {
             l.error("Failed to make the insert post request");

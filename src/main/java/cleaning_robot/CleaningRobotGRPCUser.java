@@ -40,7 +40,8 @@ public class CleaningRobotGRPCUser {
       @Override
       public void onError(Throwable t) {
         l.error("Error while waiting for presentation Ack: "+t.getMessage());
-        me.removeFromCityAndNotifyServer(toCrp);
+        me.removeOtherFromCity(toCrp);
+        channel.shutdownNow();
       }
 
       @Override
@@ -51,7 +52,7 @@ public class CleaningRobotGRPCUser {
     });
   }
 
-  public static void asyncLeaveCity(List<CleaningRobotRep> robots, CleaningRobotRep crp, CleaningRobot me) {
+  public static void asyncLeaveCity(List<CleaningRobotRep> robots, CleaningRobotRep crp) {
     CRRepService crpService =
             CRRepService.newBuilder()
                     .setID(crp.ID).setIP(crp.IPAddress).setPort(crp.interactionPort).build();
@@ -70,7 +71,7 @@ public class CleaningRobotGRPCUser {
         @Override
         public void onError(Throwable t) {
           l.error("Error while waiting for leaving Ack: "+t.getMessage());
-          me.removeFromCityAndNotifyServer(c);
+          channel.shutdownNow();
         }
 
         @Override
@@ -100,8 +101,9 @@ public class CleaningRobotGRPCUser {
         @Override
         public void onError(Throwable t) {
           l.error("Error while waiting for areYouAlive Ack: "+t.getMessage());
-          me.removeFromCityAndNotifyServer(crp);
+          me.removeOtherFromCity(crp);
           l.log("Updated city: "+SimpleCity.getCity());
+          channel.shutdownNow();
         }
 
         @Override
@@ -149,7 +151,8 @@ public class CleaningRobotGRPCUser {
         @Override
         public void onError(Throwable t) {
           l.error("Error while waiting for sendMaintenanceRequest Ack: "+t.getMessage());
-          me.removeFromCityAndNotifyServer(c);
+          me.removeOtherFromCity(c);
+          channel.shutdownNow();
         }
 
         @Override

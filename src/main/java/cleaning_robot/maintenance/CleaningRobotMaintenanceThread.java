@@ -31,12 +31,13 @@ public class CleaningRobotMaintenanceThread extends Thread {
                         // l.log("Robot maintenance is done");
                     } else {
                         l.log("Checking for failures");
-                        if (ThreadLocalRandom.current().nextInt(0, 10) >6) {
-                            l.log("FAILURE detected, going into maintenance");
+                        if (ThreadLocalRandom.current().nextInt(0, 10) >3) {
+                            l.warn("FAILURE detected, need maintenance");
                             crm.sendMaintenanceRequest();
                         }
                     }
-                    Thread.sleep(10 * 1000);
+
+                    Thread.sleep( ThreadLocalRandom.current().nextInt(1_000,10_000));
                 }
 
         } catch (InterruptedException e) {

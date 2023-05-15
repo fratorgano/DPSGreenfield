@@ -37,7 +37,7 @@ public class CleaningRobotGRPCImpl extends CleaningRobotServiceImplBase {
 
   @Override
   public void leaving(CRRepService request, StreamObserver<Ack> responseObserver) {
-    l.log(String.format("Robot %s is asking to leave the city",request.getID()));
+    l.log(String.format("Robot %s leaving",request.getID()));
     CleaningRobotRep toRemoveCrp = new CleaningRobotRep(
             request.getID(),
             request.getIP(),
