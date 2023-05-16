@@ -1,5 +1,7 @@
-package cleaning_robot;
+package cleaning_robot.grpc;
 
+import cleaning_robot.CleaningRobot;
+import cleaning_robot.CleaningRobotRep;
 import cleaning_robot.maintenance.CleaningRobotMaintenance;
 import common.city.SimpleCity;
 import common.logger.MyLogger;
@@ -15,7 +17,7 @@ import java.util.List;
 
 public class CleaningRobotGRPCUser {
   static MyLogger l = new MyLogger("RobotGRPCUser");
-  public static void asyncPresentation(String socket, int x, int y, CleaningRobotRep crp,CleaningRobotRep toCrp, CleaningRobot me) {
+  public static void asyncPresentation(String socket, int x, int y, CleaningRobotRep crp, CleaningRobotRep toCrp, CleaningRobot me) {
     final ManagedChannel channel = ManagedChannelBuilder.forTarget(socket).usePlaintext().build();
     CleaningRobotServiceGrpc.CleaningRobotServiceStub stub = CleaningRobotServiceGrpc.newStub(channel);
     CleaningRobotServiceOuterClass.Position position =

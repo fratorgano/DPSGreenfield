@@ -1,5 +1,6 @@
 package cleaning_robot;
 
+import cleaning_robot.grpc.CleaningRobotGRPCUser;
 import common.logger.MyLogger;
 
 public class CleaningRobotHeartbeatThread extends Thread {

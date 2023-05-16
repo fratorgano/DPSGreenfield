@@ -1,7 +1,7 @@
 package cleaning_robot.maintenance;
 
 import cleaning_robot.CleaningRobot;
-import cleaning_robot.CleaningRobotGRPCUser;
+import cleaning_robot.grpc.CleaningRobotGRPCUser;
 import cleaning_robot.CleaningRobotRep;
 import common.city.SimpleCity;
 import common.logger.MyLogger;

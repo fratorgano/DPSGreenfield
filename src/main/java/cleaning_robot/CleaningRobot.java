@@ -1,5 +1,7 @@
 package cleaning_robot;
 
+import cleaning_robot.grpc.CleaningRobotGRPCThread;
+import cleaning_robot.grpc.CleaningRobotGRPCUser;
 import cleaning_robot.maintenance.CleaningRobotMaintenanceThread;
 import cleaning_robot.mqtt.BufferImpl;
 import cleaning_robot.mqtt.CleaningRobotMqttThread;
@@ -24,7 +26,7 @@ public class CleaningRobot {
     private PM10Simulator sensorSimulatorThread;
     private String district;
     public CleaningRobotMaintenanceThread crmt;
-    CleaningRobotRep crp;
+    public CleaningRobotRep crp;
     List<CleaningRobotRep> others;
     CleaningRobotGRPCThread crgt;
     private CleaningRobotHeartbeatThread crht;

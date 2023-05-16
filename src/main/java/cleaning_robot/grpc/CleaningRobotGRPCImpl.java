@@ -1,5 +1,7 @@
-package cleaning_robot;
+package cleaning_robot.grpc;
 
+import cleaning_robot.CleaningRobot;
+import cleaning_robot.CleaningRobotRep;
 import common.city.SimpleCity;
 import common.city.Position;
 import common.logger.MyLogger;

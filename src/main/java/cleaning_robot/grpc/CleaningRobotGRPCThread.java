@@ -1,5 +1,6 @@
-package cleaning_robot;
+package cleaning_robot.grpc;
 
+import cleaning_robot.CleaningRobot;
 import common.logger.MyLogger;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
