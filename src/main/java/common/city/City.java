@@ -67,15 +67,15 @@ public class City {
   public static String getDistrictName(int x,int y) {
     if (x<=4) {
       if(y<=4) {
-        return "district-1";
+        return "district1";
       } else {
-        return "district-2";
+        return "district2";
       }
     } else {
       if(y<=4) {
-        return "district-4";
+        return "district4";
       } else {
-        return "district-3";
+        return "district3";
       }
     }
 
