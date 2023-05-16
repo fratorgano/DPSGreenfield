@@ -132,6 +132,8 @@ public class CleaningRobot {
                 this.crht.stopHeartbeats();
                 this.crgt.interrupt();
                 this.crht.interrupt();
+                this.crmt.stopMaintenanceThread();
+                this.mqttThread.stopRunning();
             } else {
                 l.error("Leaving refused from server");
             }

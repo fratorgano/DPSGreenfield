@@ -15,6 +15,8 @@ public class CleaningRobotMqttThread extends Thread{
     private final String clientId;
     private final BufferImpl buffer;
     private final CleaningRobotRep crp;
+    private boolean isRunning;
+    private ReadingBufferThread rbt;
     private MqttConnectOptions connOpts;
     private MqttAsyncClient mqttClient;
     private final MyLogger l = new MyLogger("MQTTThread");
@@ -25,6 +27,7 @@ public class CleaningRobotMqttThread extends Thread{
         this.clientId = MqttClient.generateClientId();
         this.buffer = buffer;
         this.crp = crp;
+        this.isRunning = true;
 
         try {
             this.mqttClient = new MqttAsyncClient(broker, clientId, new MemoryPersistence());
@@ -34,6 +37,8 @@ public class CleaningRobotMqttThread extends Thread{
             IMqttToken token = mqttClient.connect(connOpts);
             token.waitForCompletion(1000);
             l.log("Connected to broker");
+            this.rbt = new ReadingBufferThread(buffer);
+            this.rbt.start();
 
         } catch (MqttException me) {
             l.error("reason " + me.getReasonCode());
@@ -47,17 +52,19 @@ public class CleaningRobotMqttThread extends Thread{
     @Override
     public void run() {
         // every 15 seconds send an object containing the data of the last readings
-        while(true) {
+        while(isRunning) {
             try {
                 Thread.sleep(15*1000);
-                List<Double> averages = buffer.readAllAveragesAndClean();
-                l.log("Current averages:"+averages);
+                l.log("Reading averages from ReadingBufferThread");
+                List<Double> averages = this.rbt.readAllAveragesAndClean();
+                // l.log("Current averages:"+averages);
                 MqttReading reading = new MqttReading(averages, Instant.now().toString(),crp.ID);
                 String payload = reading.toJson();
-                l.log(payload);
+                // l.log(payload);
                 MqttMessage message = new MqttMessage(payload.getBytes());
                 message.setQos(2);
                 mqttClient.publish(topic,message);
+                l.log("Published sensor readings averages");
 
             } catch (InterruptedException | MqttException e) {
                 l.error("Error in mqtt run loop");
@@ -65,5 +72,10 @@ public class CleaningRobotMqttThread extends Thread{
                 throw new RuntimeException(e);
             }
         }
+    }
+
+    public void stopRunning() {
+        this.isRunning = false;
+        this.rbt.stopRunning();
     }
 }

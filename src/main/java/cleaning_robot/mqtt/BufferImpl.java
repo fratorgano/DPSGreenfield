@@ -14,7 +14,7 @@ public class BufferImpl implements Buffer {
     public synchronized void addMeasurement(Measurement m) {
         buffer.add(m);
         if (buffer.size()==8) {
-            double sum=0;
+            /*double sum=0;
             for (int i = 0; i < 4; i++) {
                 double removed = buffer.remove(0).getValue();
                 sum += removed;
@@ -23,14 +23,15 @@ public class BufferImpl implements Buffer {
                 double peeked = buffer.get(i).getValue();
                 sum += peeked;
             }
-            averages.add( ( sum / 8.0));
+            averages.add( ( sum / 8.0));*/
+            this.notify();
         }
     }
 
     @Override
     public synchronized List<Measurement> readAllAndClean() {
         ArrayList<Measurement> copy = new ArrayList<>(buffer);
-        buffer.clear();
+        buffer.subList(0, 4).clear();
         return copy;
     }
     public synchronized List<Double> readAllAveragesAndClean() {
