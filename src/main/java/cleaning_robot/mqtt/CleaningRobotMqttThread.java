@@ -1,6 +1,7 @@
 package cleaning_robot.mqtt;
 
 import cleaning_robot.CleaningRobotRep;
+import cleaning_robot.simulator.Simulator;
 import common.logger.MyLogger;
 import common.mqtt.MqttReading;
 import org.eclipse.paho.client.mqttv3.*;
@@ -21,7 +22,7 @@ public class CleaningRobotMqttThread extends Thread{
     private MqttAsyncClient mqttClient;
     private final MyLogger l = new MyLogger("MQTTThread");
 
-    public CleaningRobotMqttThread(String broker, String topic, BufferImpl buffer, CleaningRobotRep crp) {
+    public CleaningRobotMqttThread(String broker, String topic, BufferImpl buffer, CleaningRobotRep crp, Simulator sim) {
         this.brokerString = broker;
         this.topic = topic;
         this.clientId = MqttClient.generateClientId();
@@ -37,7 +38,7 @@ public class CleaningRobotMqttThread extends Thread{
             IMqttToken token = mqttClient.connect(connOpts);
             token.waitForCompletion(1000);
             l.log("Connected to broker");
-            this.rbt = new ReadingBufferThread(buffer);
+            this.rbt = new ReadingBufferThread(buffer,sim);
             this.rbt.start();
 
         } catch (MqttException me) {
@@ -65,12 +66,19 @@ public class CleaningRobotMqttThread extends Thread{
                 message.setQos(2);
                 mqttClient.publish(topic,message);
                 l.log("Published sensor readings averages");
-
             } catch (InterruptedException | MqttException e) {
                 l.error("Error in mqtt run loop");
                 l.error(e.getMessage());
                 throw new RuntimeException(e);
             }
+        }
+        try {
+            IMqttToken disconnectToken = this.mqttClient.disconnect();
+            disconnectToken.waitForCompletion(2000);
+            this.mqttClient.close();
+        } catch (MqttException e) {
+            l.log("Failed to close mqttClient: "+e.getMessage());
+            throw new RuntimeException(e);
         }
     }
 

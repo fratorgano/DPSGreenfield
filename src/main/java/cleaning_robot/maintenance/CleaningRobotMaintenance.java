@@ -97,4 +97,14 @@ public class CleaningRobotMaintenance {
     // equal to confirmation
     confirmMaintenanceRequest(leftCrp);
   }
+
+  public synchronized void waitForMaintenanceEnd() {
+    if (maintenanceInstant != null) {
+      try {
+        this.wait();
+      } catch (InterruptedException e) {
+        l.error("Error while waiting for maintenance end");
+      }
+    }
+  }
 }

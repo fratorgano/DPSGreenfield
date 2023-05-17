@@ -2,6 +2,7 @@ package cleaning_robot.mqtt;
 
 import cleaning_robot.simulator.Buffer;
 import cleaning_robot.simulator.Measurement;
+import cleaning_robot.simulator.Simulator;
 import common.logger.MyLogger;
 
 import java.util.ArrayList;
@@ -10,12 +11,14 @@ import java.util.List;
 public class ReadingBufferThread extends Thread {
   private final MyLogger l = new MyLogger("ReadingBufferThread");
   private final Buffer buffer;
+  private final Simulator sim;
   private boolean isRunning;
   public ArrayList<Double> averages = new ArrayList<>();
 
-  public ReadingBufferThread(Buffer buffer) {
+  public ReadingBufferThread(Buffer buffer, Simulator sim) {
     this.isRunning = true;
     this.buffer = buffer;
+    this.sim = sim;
   }
 
   @Override
@@ -28,6 +31,11 @@ public class ReadingBufferThread extends Thread {
         }
         // l.log("Readings from buffer and calculating averages");
         calculateAverages();
+        if(!this.isRunning) {
+          // stop simulator after sending last reading
+          this.sim.stopMeGently();
+          break;
+        }
       } catch (InterruptedException e) {
         throw new RuntimeException(e);
       }

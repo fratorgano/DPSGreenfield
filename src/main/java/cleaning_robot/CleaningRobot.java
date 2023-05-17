@@ -68,7 +68,9 @@ public class CleaningRobot {
                     "tcp://localhost:1883",
                     "greenfield/pollution/"+this.district,
                     this.sensorBuffer,
-                    crp);
+                    crp,
+                    this.sensorSimulatorThread
+                );
             this.mqttThread.start();
 
             CleaningRobotCLIThread crct = new CleaningRobotCLIThread(this);
@@ -120,6 +122,10 @@ public class CleaningRobot {
     public void leaveCity() {
         // leaves the city in a controlled way
         l.log("I'm gonna leave the city");
+
+        l.log("Waiting for maintenance to finish");
+        this.crmt.crm.waitForMaintenanceEnd();
+        l.log("Maintenance is done");
         List<CleaningRobotRep> robots = SimpleCity.getCity().getRobotsList();
         CleaningRobotGRPCUser.asyncLeaveCity(robots,this.crp);
 
@@ -131,11 +137,15 @@ public class CleaningRobot {
             if (cr.getStatus() == ClientResponse.Status.OK.getStatusCode()) {
                 l.log("Leaving accepted from server, stopping...");
                 this.crgt.stopServer();
-                this.crht.stopHeartbeats();
-                this.crgt.interrupt();
-                this.crht.interrupt();
                 this.crmt.stopMaintenanceThread();
+                // the mqtt thread will also stop the simulator and reading buffer thread
                 this.mqttThread.stopRunning();
+                try {
+                    // waiting for eventual end of mqttThread
+                    Thread.sleep(15000);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
             } else {
                 l.error("Leaving refused from server");
             }
