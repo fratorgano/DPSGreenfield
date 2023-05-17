@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class RestThread extends Thread {
+public class RestServer {
   public final String host;
   public final Integer port;
   private HttpServer httpServer;
@@ -16,17 +16,11 @@ public class RestThread extends Thread {
   private final MyLogger l = new MyLogger("RestThread");
 
 
-  public RestThread(String host, Integer port) {
+  public RestServer(String host, Integer port) {
     this.host = host;
     this.port = port;
   }
-  public RestThread() {
-    this.host = "localhost";
-    this.port = 1337;
-  }
-
-  @Override
-  public void run() {
+  public void startServer() {
     Logger.getLogger("com.sun.jersey").setLevel(Level.SEVERE);
     try {
       httpServer = HttpServerFactory.create("http://"+host+":"+port+"/");
@@ -35,16 +29,9 @@ public class RestThread extends Thread {
     } catch (IOException e) {
       l.error("Failed to initialize HttpServer: "+e.getMessage());
     }
-
-
-    /*System.out.println("Hit return to stop...");
-    System.in.read();
-    System.out.println("Stopping server");
-    server.stop(0);
-    System.out.println("Server stopped");*/
   }
+
   public void stopServer() {
-    l.log("Stopping server...");
     httpServer.stop(0);
     l.log("Server stopped");
   }

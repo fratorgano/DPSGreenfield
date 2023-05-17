@@ -1,4 +1,4 @@
-package admin.server.mqtt;
+package admin.server.pollution;
 
 import common.mqtt.MqttReading;
 
@@ -8,7 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 
 public class DataStorage {
-    private HashMap<String, List<MqttReading>> data;
+    private final HashMap<String, List<MqttReading>> data;
     private static DataStorage ds;
     public static DataStorage getInstance() {
         if(ds==null) {
@@ -17,7 +17,7 @@ public class DataStorage {
         return ds;
     }
     public DataStorage() {
-        data = new HashMap<String,List<MqttReading>>();
+        data = new HashMap<>();
     }
     public synchronized void addData(String crpID,MqttReading reading) {
         if(data.containsKey(crpID)) {
