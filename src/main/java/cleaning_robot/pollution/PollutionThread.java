@@ -82,6 +82,7 @@ public class PollutionThread extends Thread{
             l.warn("Will try to send data again along with new data as soon as it is available ("+messages.size()+")");
             return;
         }
+        messages.clear();
         l.log("Published sensor readings averages");
     }
 
