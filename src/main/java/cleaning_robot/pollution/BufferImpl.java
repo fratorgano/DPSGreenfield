@@ -1,4 +1,4 @@
-package cleaning_robot.mqtt;
+package cleaning_robot.pollution;
 
 import cleaning_robot.simulator.Buffer;
 import cleaning_robot.simulator.Measurement;
@@ -8,7 +8,7 @@ import java.util.List;
 
 public class BufferImpl implements Buffer {
     ArrayList<Measurement> buffer = new ArrayList<>(8);
-    public ArrayList<Double> averages = new ArrayList<>();
+    // public ArrayList<Double> averages = new ArrayList<>();
 
     @Override
     public synchronized void addMeasurement(Measurement m) {
@@ -34,9 +34,9 @@ public class BufferImpl implements Buffer {
         buffer.subList(0, 4).clear();
         return copy;
     }
-    public synchronized List<Double> readAllAveragesAndClean() {
-        ArrayList<Double> copy = new ArrayList<>(averages);
-        averages.clear();
-        return copy;
-    }
+//    public synchronized List<Double> readAllAveragesAndClean() {
+//        ArrayList<Double> copy = new ArrayList<>(averages);
+//        averages.clear();
+//        return copy;
+//    }
 }

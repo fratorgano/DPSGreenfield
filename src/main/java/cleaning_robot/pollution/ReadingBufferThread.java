@@ -1,15 +1,15 @@
-package cleaning_robot.mqtt;
+package cleaning_robot.pollution;
 
 import cleaning_robot.simulator.Buffer;
 import cleaning_robot.simulator.Measurement;
 import cleaning_robot.simulator.Simulator;
-import common.logger.MyLogger;
+// import common.logger.MyLogger;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class ReadingBufferThread extends Thread {
-  private final MyLogger l = new MyLogger("ReadingBufferThread");
+  // private final MyLogger l = new MyLogger("ReadingBufferThread");
   private final Buffer buffer;
   private final Simulator sim;
   private boolean isRunning;

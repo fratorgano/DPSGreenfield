@@ -3,9 +3,7 @@ package cleaning_robot;
 import cleaning_robot.grpc.CleaningRobotGRPCThread;
 import cleaning_robot.grpc.CleaningRobotGRPCUser;
 import cleaning_robot.maintenance.CleaningRobotMaintenanceThread;
-import cleaning_robot.mqtt.BufferImpl;
-import cleaning_robot.mqtt.CleaningRobotMqttThread;
-import cleaning_robot.simulator.PM10Simulator;
+import cleaning_robot.pollution.PollutionThread;
 import com.google.gson.Gson;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientHandlerException;
@@ -21,9 +19,7 @@ import java.util.Optional;
 
 public class CleaningRobot {
     private final MyLogger l = new MyLogger("CleaningRobot");
-    private CleaningRobotMqttThread mqttThread;
-    private BufferImpl sensorBuffer;
-    private PM10Simulator sensorSimulatorThread;
+    private PollutionThread pollutionThread;
     private String district;
     public CleaningRobotMaintenanceThread crmt;
     public CleaningRobotRep crp;
@@ -59,19 +55,13 @@ public class CleaningRobot {
             this.crmt = new CleaningRobotMaintenanceThread(this.crp, this);
             crmt.start();
 
-            l.log("Starting sensor simulator");
-            this.sensorBuffer = new BufferImpl();
-            this.sensorSimulatorThread = new PM10Simulator(sensorBuffer);
-            this.sensorSimulatorThread.start();
-            l.log("Starting mqtt thread");
-            this.mqttThread = new CleaningRobotMqttThread(
+            l.log("Starting pollution thread");
+            this.pollutionThread = new PollutionThread(
                     "tcp://localhost:1883",
                     "greenfield/pollution/"+this.district,
-                    this.sensorBuffer,
-                    crp,
-                    this.sensorSimulatorThread
+                    crp
                 );
-            this.mqttThread.start();
+            this.pollutionThread.start();
 
             CleaningRobotCLIThread crct = new CleaningRobotCLIThread(this);
             crct.start();
@@ -139,7 +129,7 @@ public class CleaningRobot {
                 this.crgt.stopServer();
                 this.crmt.stopMaintenanceThread();
                 // the mqtt thread will also stop the simulator and reading buffer thread
-                this.mqttThread.stopRunning();
+                this.pollutionThread.stopRunning();
                 try {
                     // waiting for eventual end of mqttThread
                     Thread.sleep(15000);
