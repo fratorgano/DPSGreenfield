@@ -29,7 +29,6 @@ public class DataStorage {
             newList.add(reading);
             data.put(crpID,newList);
         }
-
     }
 
     public synchronized Double averageN(Integer n,String crpID) {
@@ -61,5 +60,9 @@ public class DataStorage {
             }
         }));
         return sum[0]/count[0];
+    }
+
+    synchronized void clear() {
+        data.clear();
     }
 }
