@@ -14,13 +14,11 @@ class ReadingBufferThreadTest {
     ReadingBufferThread t = new ReadingBufferThread(b,null);
     // add 8 measurements, half 1 half 2, average should be 1.5
     for (int i = 0; i < 8; i++) {
-      double v;
       if (i <= 3) {
-        v = 1.;
+        b.addMeasurement(new Measurement("", "", 1, 0));
       } else {
-        v = 2.;
+        b.addMeasurement(new Measurement("", "", 2, 0));
       }
-      b.addMeasurement(new Measurement("", "", v, 0));
     }
     System.out.println(b);
     // buffer = 1 1 1 1 2 2 2 2
