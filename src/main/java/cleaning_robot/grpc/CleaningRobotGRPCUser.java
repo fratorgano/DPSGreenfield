@@ -2,7 +2,7 @@ package cleaning_robot.grpc;
 
 import cleaning_robot.CleaningRobot;
 import cleaning_robot.CleaningRobotRep;
-import cleaning_robot.maintenance.CleaningRobotMaintenance;
+import cleaning_robot.maintenance.MaintenanceHandler;
 import common.city.SimpleCity;
 import common.logger.MyLogger;
 import io.grpc.ManagedChannel;
@@ -120,7 +120,7 @@ public class CleaningRobotGRPCUser {
   public static void asyncSendMaintenanceRequest(CleaningRobotRep crp,
                                                  Instant timestamp,
                                                  List<CleaningRobotRep> otherRobots,
-                                                 CleaningRobotMaintenance crm,
+                                                 MaintenanceHandler crm,
                                                  CleaningRobot me) {
     // this should send a maintenance request to each other member of the city
     // and when an answer is received call a method to confirm that an OK was received

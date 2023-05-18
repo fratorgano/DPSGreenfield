@@ -19,8 +19,7 @@ public class CleaningRobotGRPCImpl extends CleaningRobotServiceImplBase {
   @Override
   public void introduceYourself(Introduction presentation, StreamObserver<Ack> responseObserver) {
     // answer to an introduction
-    l.log("Introduction received");
-    l.log("Introduction: "+presentation);
+    l.log("Introduction received from "+presentation.getCrp().getID());
     Ack response =Ack.newBuilder().build();
     responseObserver.onNext(response);
     CleaningRobotRep crp = new CleaningRobotRep(
@@ -63,45 +62,22 @@ public class CleaningRobotGRPCImpl extends CleaningRobotServiceImplBase {
 
   @Override
   public void maintenanceNeed(MaintenanceReq request, StreamObserver<CRRepService> responseObserver) {
-    l.log("Got a maintenance request");
-
-
-    CleaningRobotRep requesterCRP = new CleaningRobotRep(
+    l.log("Got a maintenance request from "+request.getCrp().getID());
+    CleaningRobotRep crp = new CleaningRobotRep(
         request.getCrp().getID(),
         request.getCrp().getIP(),
-        request.getCrp().getPort());
+        request.getCrp().getPort()
+    );
     String time = request.getTime();
-    // needed because it might start some outbound rpc requests
     // this should answer only if it doesn't need maintenance or if the maintenance is done
-    this.cr.crmt.receiveMaintenanceRequest(requesterCRP,time);
+    this.cr.failureDetectionThread.receiveMaintenanceRequest(crp, time);
     CRRepService response = CRRepService.newBuilder()
             .setID(cr.crp.ID).setIP(cr.crp.IPAddress).setPort(cr.crp.interactionPort).build();
     responseObserver.onNext(response);
     responseObserver.onCompleted();
-    /*synchronized (cr.crmt.crm) {
-      try {
-
-        if(!this.cr.crmt.crm.doesOtherHasPriority(time)) {
-          l.log("Starting to wait for maintenance");
-          this.cr.crmt.wait();
-          l.log("Wait is done, answering to maintenance requester");
-          CRRepService response = CRRepService.newBuilder()
-                  .setID(cr.crp.ID).setIP(cr.crp.IPAddress).setPort(cr.crp.interactionPort).build();
-          responseObserver.onNext(response);
-        } else {
-          l.log("I don't need maintenance or you are before me, go ahead");
-          CRRepService response = CRRepService.newBuilder()
-                  .setID(cr.crp.ID).setIP(cr.crp.IPAddress).setPort(cr.crp.interactionPort).build();
-          responseObserver.onNext(response);
-        }
-
-      } catch (InterruptedException e) {
-        throw new RuntimeException(e);
-      }
-    }*/
 
 
-
+// needed because it might start some outbound rpc requests
 //    Context ctx = Context.current().fork();
 //    ctx.run(() -> cr.receiveMaintenanceRequest(requesterCRP,request.getTime()));
 //    responseObserver.onCompleted();

@@ -11,17 +11,17 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class CleaningRobotMaintenance {
+public class MaintenanceHandler {
   private final CleaningRobotRep crp;
   private final CleaningRobot me;
   Boolean isRunning;
   public Boolean isInMaintenance;
   List<CleaningRobotRep> maintenanceQueue = new ArrayList<>();
-  MyLogger l = new MyLogger("CleaningRobotMaintenance");
+  MyLogger l = new MyLogger("MaintenanceHandler");
   List<CleaningRobotRep> confirmationsNeeded = new ArrayList<>();
   public Instant maintenanceInstant = null;
 
-  public CleaningRobotMaintenance(CleaningRobotRep crp, CleaningRobot me) {
+  public MaintenanceHandler(CleaningRobotRep crp, CleaningRobot me) {
     this.isInMaintenance = false;
     this.isRunning = true;
     this.crp = crp;
@@ -49,36 +49,36 @@ public class CleaningRobotMaintenance {
   public void sendMaintenanceRequest() {
     if(maintenanceInstant!=null) {
       l.error("sendMaintenanceRequest was called twice before being done");
-      throw new RuntimeException("This function should be called only one");
+      throw new RuntimeException("This function should be called only once");
     }
     this.maintenanceInstant = Instant.now();
     this.confirmationsNeeded = SimpleCity.getCity().getRobotsList().stream()
         .filter(r->!r.ID.equals(crp.ID))
         .collect(Collectors.toList());
+    String confirmationIDs = confirmationsNeeded.stream().map(crp -> crp.ID).reduce("",(c1, c2)->c1+' '+c2);
     if (this.confirmationsNeeded.size()>0) {
-      l.log("Need maintenance, confirmations needed: "+confirmationsNeeded);
+      l.log("Need maintenance, confirmations needed:"+confirmationIDs);
       CleaningRobotGRPCUser.asyncSendMaintenanceRequest(crp, maintenanceInstant,confirmationsNeeded, this, me);
     } else {
       enterMaintenance();
     }
   }
 
-  public synchronized void receiveMaintenanceRequest(CleaningRobotRep crpRequest, String timestamp) {
+  public synchronized void receiveMaintenanceRequest(CleaningRobotRep requester, String timestamp) {
     if(!doesOtherHasPriority(timestamp)) {
-      l.log("My request was earlier, waiting for notify before going on and answering request");
-      // If request time is after mine, return false and add requester to maintenanceQueue
+      l.log("I have priority over "+requester.ID+", waiting until I'm done to give Ok");
       try {
         this.wait();
       } catch (InterruptedException e) {
         throw new RuntimeException(e);
       }
     } else {
-      l.log("You either have priority or I don't need maintenance, go ahead");
+      l.log(requester.ID+" has priority, giving Ok");
     }
   }
 
   public void confirmMaintenanceRequest(CleaningRobotRep crpConfirm) {
-    l.log("Received confirmation from: "+crpConfirm);
+    l.log("Received confirmation from "+crpConfirm.ID);
     this.confirmationsNeeded.removeIf(c->c.ID.equals(crpConfirm.ID));
     if(this.confirmationsNeeded.isEmpty()) {
       enterMaintenance();

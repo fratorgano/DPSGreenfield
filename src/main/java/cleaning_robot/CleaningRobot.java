@@ -2,7 +2,7 @@ package cleaning_robot;
 
 import cleaning_robot.grpc.CleaningRobotGRPCThread;
 import cleaning_robot.grpc.CleaningRobotGRPCUser;
-import cleaning_robot.maintenance.CleaningRobotMaintenanceThread;
+import cleaning_robot.maintenance.FailureDetectionThread;
 import cleaning_robot.pollution.PollutionThread;
 import com.google.gson.Gson;
 import com.sun.jersey.api.client.Client;
@@ -21,7 +21,7 @@ public class CleaningRobot {
     private final MyLogger l = new MyLogger("CleaningRobot");
     private PollutionThread pollutionThread;
     private String district;
-    public CleaningRobotMaintenanceThread crmt;
+    public FailureDetectionThread failureDetectionThread;
     public CleaningRobotRep crp;
     List<CleaningRobotRep> others;
     CleaningRobotGRPCThread crgt;
@@ -52,8 +52,8 @@ public class CleaningRobot {
             // l.log("Starting heartbeat thread");
             // startHeartbeats();
             l.log("Starting maintenance thread");
-            this.crmt = new CleaningRobotMaintenanceThread(this.crp, this);
-            crmt.start();
+            this.failureDetectionThread = new FailureDetectionThread(this.crp, this);
+            failureDetectionThread.start();
 
             l.log("Starting pollution thread");
             this.pollutionThread = new PollutionThread(
@@ -114,7 +114,7 @@ public class CleaningRobot {
         l.log("I'm gonna leave the city");
 
         l.log("Waiting for maintenance to finish");
-        this.crmt.crm.waitForMaintenanceEnd();
+        this.failureDetectionThread.maintenanceHandler.waitForMaintenanceEnd();
         l.log("Maintenance is done");
         List<CleaningRobotRep> robots = SimpleCity.getCity().getRobotsList();
         CleaningRobotGRPCUser.asyncLeaveCity(robots,this.crp);
@@ -127,7 +127,7 @@ public class CleaningRobot {
             if (cr.getStatus() == ClientResponse.Status.OK.getStatusCode()) {
                 l.log("Leaving accepted from server, stopping...");
                 this.crgt.stopServer();
-                this.crmt.stopMaintenanceThread();
+                this.failureDetectionThread.stopRunning();
                 // the mqtt thread will also stop the simulator and reading buffer thread
                 this.pollutionThread.stopRunning();
                 try {
@@ -171,7 +171,7 @@ public class CleaningRobot {
             crpToDelete);
 
         // let maintenance thread know that a robot left
-        crmt.crm.handleRobotLeaving(crpToDelete);
+        failureDetectionThread.maintenanceHandler.handleRobotLeaving(crpToDelete);
     }
     private void startHeartbeats() {
         this.crht = new CleaningRobotHeartbeatThread(this);
@@ -180,10 +180,10 @@ public class CleaningRobot {
 
 
     public void requestMaintenance() {
-        crmt.triggerMaintenance();
+        failureDetectionThread.requestMaintenance();
     }
-    public void receiveMaintenanceRequest(CleaningRobotRep requestedCrp, String timestamp) {
-        crmt.receiveMaintenanceRequest(requestedCrp,timestamp);
+    public void receiveMaintenanceRequest(CleaningRobotRep requester, String timestamp) {
+        failureDetectionThread.receiveMaintenanceRequest(requester, timestamp);
     }
 
     private ClientResponse postInsertRequest(Client client, String serverAddress){
@@ -202,7 +202,6 @@ public class CleaningRobot {
     private ClientResponse deleteRemoveRequest(Client client, String serverAddress, CleaningRobotRep crp) {
         WebResource webResource = client.resource(serverAddress+"/robots/delete");
         String input = new Gson().toJson(crp);
-        l.log(input);
         try {
             l.log("Sending DELETE remove request for "+crp.ID);
             return webResource.type("application/json").delete(ClientResponse.class, input);
