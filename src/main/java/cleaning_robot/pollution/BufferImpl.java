@@ -39,4 +39,9 @@ public class BufferImpl implements Buffer {
 //        averages.clear();
 //        return copy;
 //    }
+
+    @Override
+    public String toString() {
+        return buffer.toString();
+    }
 }
