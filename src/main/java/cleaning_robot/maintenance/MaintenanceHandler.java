@@ -1,7 +1,7 @@
 package cleaning_robot.maintenance;
 
 import cleaning_robot.CleaningRobot;
-import cleaning_robot.grpc.CleaningRobotGRPCUser;
+import cleaning_robot.grpc.GRPCUser;
 import cleaning_robot.CleaningRobotRep;
 import common.city.SimpleCity;
 import common.logger.MyLogger;
@@ -58,7 +58,7 @@ public class MaintenanceHandler {
     String confirmationIDs = confirmationsNeeded.stream().map(crp -> crp.ID).reduce("",(c1, c2)->c1+' '+c2);
     if (this.confirmationsNeeded.size()>0) {
       l.log("Need maintenance, confirmations needed:"+confirmationIDs);
-      CleaningRobotGRPCUser.asyncSendMaintenanceRequest(crp, maintenanceInstant,confirmationsNeeded, this, me);
+      GRPCUser.asyncSendMaintenanceRequest(crp, maintenanceInstant,confirmationsNeeded, this, me);
     } else {
       enterMaintenance();
     }

@@ -15,8 +15,8 @@ import proto.CleaningRobotServiceOuterClass.CRRepService;
 import java.time.Instant;
 import java.util.List;
 
-public class CleaningRobotGRPCUser {
-  static MyLogger l = new MyLogger("RobotGRPCUser");
+public class GRPCUser {
+  static MyLogger l = new MyLogger("GRPCUser");
   public static void asyncPresentation(String socket, int x, int y, CleaningRobotRep crp, CleaningRobotRep toCrp, CleaningRobot me) {
     final ManagedChannel channel = ManagedChannelBuilder.forTarget(socket).usePlaintext().build();
     CleaningRobotServiceGrpc.CleaningRobotServiceStub stub = CleaningRobotServiceGrpc.newStub(channel);

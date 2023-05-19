@@ -9,11 +9,11 @@ import io.grpc.stub.StreamObserver;
 import proto.CleaningRobotServiceGrpc.CleaningRobotServiceImplBase;
 import proto.CleaningRobotServiceOuterClass.*;
 
-public class CleaningRobotGRPCImpl extends CleaningRobotServiceImplBase {
+public class GRPCImpl extends CleaningRobotServiceImplBase {
   private final CleaningRobot cr;
-  MyLogger l = new MyLogger("CleaningRobotGRPCImpl");
+  MyLogger l = new MyLogger("GRPCImpl");
 
-  public CleaningRobotGRPCImpl(CleaningRobot cr) {
+  public GRPCImpl(CleaningRobot cr) {
     this.cr = cr;
   }
   @Override

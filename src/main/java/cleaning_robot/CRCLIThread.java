@@ -6,11 +6,11 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
-public class CleaningRobotCLIThread extends Thread {
+public class CRCLIThread extends Thread {
   private boolean running;
-  MyLogger l = new MyLogger("CleaningRobotCLIThread");
+  MyLogger l = new MyLogger("CRCLIThread");
   CleaningRobot cr;
-  public CleaningRobotCLIThread(CleaningRobot cr) {
+  public CRCLIThread(CleaningRobot cr) {
     this.cr = cr;
     this.running = true;
   }

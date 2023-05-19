@@ -1,7 +1,7 @@
 package cleaning_robot;
 
-import cleaning_robot.grpc.CleaningRobotGRPCThread;
-import cleaning_robot.grpc.CleaningRobotGRPCUser;
+import cleaning_robot.grpc.GRPCThread;
+import cleaning_robot.grpc.GRPCUser;
 import cleaning_robot.maintenance.FailureDetectionThread;
 import cleaning_robot.pollution.PollutionThread;
 import com.google.gson.Gson;
@@ -19,13 +19,12 @@ import java.util.Optional;
 
 public class CleaningRobot {
     private final MyLogger l = new MyLogger("CleaningRobot");
-    private PollutionThread pollutionThread;
-    private String district;
-    public FailureDetectionThread failureDetectionThread;
     public CleaningRobotRep crp;
-    List<CleaningRobotRep> others;
-    CleaningRobotGRPCThread crgt;
-    private CleaningRobotHeartbeatThread crht;
+    private final String serverAddress = "http://localhost:1337";
+    private PollutionThread pollutionThread;
+    public FailureDetectionThread failureDetectionThread;
+    private GRPCThread grpcThread;
+    // private CleaningRobotHeartbeatThread crht;
 
     public CleaningRobot(String ID, String IPAddress, Integer interactionPort) {
         this.crp = new CleaningRobotRep(ID, IPAddress,interactionPort);
@@ -33,9 +32,9 @@ public class CleaningRobot {
         Optional<CleaningRobotInit> joined = insertIntoCity();
         if(joined.isPresent()) {
             l.log("Joined the city");
-            others = joined.get().robots;
-            this.district = SimpleCity.getDistrictName(joined.get().x,joined.get().y);
-            l.log("got district: "+this.district);
+            List<CleaningRobotRep> others = joined.get().robots;
+            String district = SimpleCity.getDistrictName(joined.get().x, joined.get().y);
+            l.log("got district: "+ district);
             // initialize a city with only one district, we don't care about which
             // district they are in
             SimpleCity.getCity();
@@ -45,8 +44,8 @@ public class CleaningRobot {
             this.crp.position = new Position(joined.get().x,joined.get().y);
             l.log(String.format("I'm at position: (%d,%d)",this.crp.position.x,this.crp.position.y));
             l.log("Starting GRPC server at port: "+interactionPort);
-            this.crgt = new CleaningRobotGRPCThread(interactionPort, this);
-            crgt.start();
+            this.grpcThread = new GRPCThread(interactionPort, this);
+            grpcThread.start();
             l.log("Introducing myself to others");
             introduceMyself();
             // l.log("Starting heartbeat thread");
@@ -58,24 +57,25 @@ public class CleaningRobot {
             l.log("Starting pollution thread");
             this.pollutionThread = new PollutionThread(
                     "tcp://localhost:1883",
-                    "greenfield/pollution/"+this.district,
+                    "greenfield/pollution/"+ district,
                     crp
                 );
             this.pollutionThread.start();
 
-            CleaningRobotCLIThread crct = new CleaningRobotCLIThread(this);
-            crct.start();
+            CRCLIThread cliThread = new CRCLIThread(this);
+            cliThread.start();
+        } else {
+            l.warn("Shutting down...");
+            shutdownThreads();
         }
     }
 
     private Optional<CleaningRobotInit> insertIntoCity() {
         // Connect to rest admin server to notify it and get location
-        Client client = Client.create();
-        String serverAddress = "http://localhost:1337";
-
         // Send request to be inserted in the city
-        ClientResponse cr = postInsertRequest(client,serverAddress);
-        if(cr!=null) {
+        Optional<ClientResponse> optCr = postInsertRequest();
+        if(optCr.isPresent()) {
+            ClientResponse cr = optCr.get();
             l.log("Response received: "+cr);
             if (cr.getStatus() == ClientResponse.Status.OK.getStatusCode()) {
                 CleaningRobotInit cri = cr.getEntity(CleaningRobotInit.class);
@@ -97,7 +97,7 @@ public class CleaningRobot {
             if (Objects.equals(cleaningRobotRep.interactionPort, crp.interactionPort)) continue;
             String socket = cleaningRobotRep.IPAddress + ':' + cleaningRobotRep.interactionPort;
             l.log("Introducing myself to "+socket);
-            CleaningRobotGRPCUser.asyncPresentation(
+            GRPCUser.asyncPresentation(
                     socket,
                     crp.position.x,
                     crp.position.y,
@@ -112,24 +112,19 @@ public class CleaningRobot {
     public void leaveCity() {
         // leaves the city in a controlled way
         l.log("I'm gonna leave the city");
-
         l.log("Waiting for maintenance to finish");
         this.failureDetectionThread.maintenanceHandler.waitForMaintenanceEnd();
         l.log("Maintenance is done");
         List<CleaningRobotRep> robots = SimpleCity.getCity().getRobotsList();
-        CleaningRobotGRPCUser.asyncLeaveCity(robots,this.crp);
+        GRPCUser.asyncLeaveCity(robots,this.crp);
 
-        Client client = Client.create();
-        String serverAddress = "http://localhost:1337";
-        ClientResponse cr = deleteRemoveRequest(client,serverAddress,this.crp);
-        if(cr!=null) {
+        Optional<ClientResponse> optCr = deleteRemoveRequest(this.crp);
+        if(optCr.isPresent()) {
+            ClientResponse cr = optCr.get();
             l.log("Answer to deletion received: "+cr);
             if (cr.getStatus() == ClientResponse.Status.OK.getStatusCode()) {
                 l.log("Leaving accepted from server, stopping...");
-                this.crgt.stopServer();
-                this.failureDetectionThread.stopRunning();
-                // the mqtt thread will also stop the simulator and reading buffer thread
-                this.pollutionThread.stopRunning();
+                shutdownThreads();
                 try {
                     // waiting for eventual end of mqttThread
                     Thread.sleep(15000);
@@ -148,12 +143,10 @@ public class CleaningRobot {
         l.error("Removing from city: "+crpToDelete);
         SimpleCity.getCity().removeRobot(crpToDelete);
         // l.log("Updated city: "+SimpleCity.getCity());
-        Client client = Client.create();
-        String serverAddress = "http://localhost:1337";
-
         // Send request to be inserted in the city
-        ClientResponse cr = deleteRemoveRequest(client,serverAddress, crpToDelete);
-        if(cr!=null) {
+        Optional<ClientResponse> optCr = deleteRemoveRequest(crpToDelete);
+        if(optCr.isPresent()) {
+            ClientResponse cr = optCr.get();
             l.log("Answer to deletion received: "+cr);
             if (cr.getStatus() == ClientResponse.Status.OK.getStatusCode()) {
                 l.log("Removed unresponsive node from server");
@@ -166,54 +159,70 @@ public class CleaningRobot {
 
         // notify others that a node was crashed
         l.log("Notifying that "+crpToDelete.ID + " was removed");
-        CleaningRobotGRPCUser.asyncLeaveCity(
+        GRPCUser.asyncLeaveCity(
             SimpleCity.getCity().getRobotsList(),
             crpToDelete);
 
         // let maintenance thread know that a robot left
         failureDetectionThread.maintenanceHandler.handleRobotLeaving(crpToDelete);
     }
-    private void startHeartbeats() {
+
+    /*private void startHeartbeats() {
         this.crht = new CleaningRobotHeartbeatThread(this);
         crht.start();
-    }
-
+    }*/
 
     public void requestMaintenance() {
         failureDetectionThread.requestMaintenance();
     }
-    public void receiveMaintenanceRequest(CleaningRobotRep requester, String timestamp) {
-        failureDetectionThread.receiveMaintenanceRequest(requester, timestamp);
-    }
 
-    private ClientResponse postInsertRequest(Client client, String serverAddress){
+    /*public void receiveMaintenanceRequest(CleaningRobotRep requester, String timestamp) {
+        failureDetectionThread.receiveMaintenanceRequest(requester, timestamp);
+    }*/
+
+    private Optional<ClientResponse> postInsertRequest(){
+        Client client = Client.create();
         WebResource webResource = client.resource(serverAddress+"/robots/insert");
         String input = new Gson().toJson(this.crp);
         l.log(input);
         try {
             l.log("Sending POST insert request");
-            return webResource.type("application/json").post(ClientResponse.class, input);
+            return Optional.of(webResource.type("application/json").post(ClientResponse.class, input));
         } catch (ClientHandlerException e) {
             l.error("Failed to make the insert post request");
-            return null;
+            return Optional.empty();
         }
     }
 
-    private ClientResponse deleteRemoveRequest(Client client, String serverAddress, CleaningRobotRep crp) {
+    private Optional<ClientResponse> deleteRemoveRequest(CleaningRobotRep crp) {
+        Client client = Client.create();
         WebResource webResource = client.resource(serverAddress+"/robots/delete");
         String input = new Gson().toJson(crp);
         try {
             l.log("Sending DELETE remove request for "+crp.ID);
-            return webResource.type("application/json").delete(ClientResponse.class, input);
+            return Optional.of(webResource.type("application/json").delete(ClientResponse.class, input));
         } catch (ClientHandlerException e) {
             l.error("Failed to make the insert post request");
-            return null;
+            return Optional.empty();
+        }
+    }
+
+    private void shutdownThreads() {
+        if(this.grpcThread!=null) {
+            this.grpcThread.stopServer();
+        }
+        if(this.failureDetectionThread!=null) {
+            this.failureDetectionThread.stopRunning();
+        }
+        if(this.pollutionThread!=null) {
+            // the mqtt thread will also stop the simulator and reading buffer thread
+            this.pollutionThread.stopRunning();
         }
     }
 
     public static void main(String[] args) {
         String ID = args[0];
         Integer port = Integer.valueOf(args[1]);
-        CleaningRobot cr = new CleaningRobot(ID,"localhost",port);
+        new CleaningRobot(ID,"localhost",port);
     }
 }
