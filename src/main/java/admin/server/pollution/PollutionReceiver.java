@@ -59,11 +59,11 @@ public class PollutionReceiver {
         while(!mqttClient.isConnected()) {
             l.warn(String.format("Trying to connect to broker (%d/%d)",count+1,n));
             mqttConnectClient();
-            count++;
-            if (count>=n) {
-                throw new RuntimeException(String.format("Failed to reconnect after %d tries.",n));
-            }
             if(!mqttClient.isConnected()) {
+                count++;
+                if (count>=n) {
+                    throw new RuntimeException(String.format("Failed to reconnect after %d tries.",n));
+                }
                 try {
                     Thread.sleep(10*1000);
                 } catch (InterruptedException e) {
