@@ -12,17 +12,10 @@ public class PollutionReceiver {
     MyLogger l = new MyLogger("PollutionReceiver");
     public PollutionReceiver(String broker) {
         this.broker = broker;
-
     }
     public void connect() {
         initializeMqtt(this.broker);
     }
-
-//    @Override
-//    public synchronized void start() {
-//        initializeMqtt(this.broker);
-//        super.start();
-//    }
 
     private void initializeMqtt(String broker) {
         String clientId = MqttClient.generateClientId();
@@ -33,18 +26,7 @@ public class PollutionReceiver {
         }
         this.connOpts = new MqttConnectOptions();
         connOpts.setCleanSession(true);
-        mqttConnectClient();
-        mqttSubscribe();
-    }
-
-    private void mqttConnectClient() {
-        try {
-            IMqttToken token = mqttClient.connect(connOpts);
-            token.waitForCompletion(1000);
-            l.log("Connected to broker");
-        } catch (MqttException e) {
-            l.error("Failed to connect to broker: " + e.getMessage());
-        }
+        mqttRetryConnection(2);
     }
 
     private void mqttSubscribe() {
@@ -57,7 +39,6 @@ public class PollutionReceiver {
             @Override
             public void connectionLost(Throwable cause) {
                 l.error("Lost connection: "+cause.getMessage());
-                l.warn("Trying to reconnect...");
                 mqttRetryConnection(6);
             }
             @Override
@@ -76,19 +57,32 @@ public class PollutionReceiver {
     private void mqttRetryConnection(int n) {
         int count = 0;
         while(!mqttClient.isConnected()) {
-            try {
-                Thread.sleep(10*1000);
-            } catch (InterruptedException e) {
-                l.error("Interrupted during sleep: "+e.getMessage());
-                throw new RuntimeException(e);
-            }
+            l.warn(String.format("Trying to connect to broker (%d/%d)",count+1,n));
             mqttConnectClient();
             count++;
-            if (count>n) {
+            if (count>=n) {
                 throw new RuntimeException(String.format("Failed to reconnect after %d tries.",n));
+            }
+            if(!mqttClient.isConnected()) {
+                try {
+                    Thread.sleep(10*1000);
+                } catch (InterruptedException e) {
+                    l.error("Interrupted during sleep: "+e.getMessage());
+                    throw new RuntimeException(e);
+                }
             }
         }
         mqttSubscribe();
+    }
+
+    private void mqttConnectClient() {
+        try {
+            IMqttToken token = mqttClient.connect(connOpts);
+            token.waitForCompletion(1000);
+            l.log("Connected to broker");
+        } catch (MqttException e) {
+            l.error("Failed to connect to broker: " + e.getMessage());
+        }
     }
     public void disconnect() {
         try {
