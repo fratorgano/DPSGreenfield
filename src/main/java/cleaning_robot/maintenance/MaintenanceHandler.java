@@ -18,7 +18,7 @@ public class MaintenanceHandler {
   public Boolean isInMaintenance;
   List<CleaningRobotRep> maintenanceQueue = new ArrayList<>();
   MyLogger l = new MyLogger("MaintenanceHandler");
-  List<CleaningRobotRep> confirmationsNeeded = new ArrayList<>();
+  final List<CleaningRobotRep> confirmationsNeeded = new ArrayList<>();
   public Instant maintenanceInstant = null;
 
   public MaintenanceHandler(CleaningRobotRep crp, CleaningRobot me) {
@@ -52,9 +52,13 @@ public class MaintenanceHandler {
       throw new RuntimeException("This function should be called only once");
     }
     this.maintenanceInstant = Instant.now();
-    this.confirmationsNeeded = SimpleCity.getCity().getRobotsList().stream()
-        .filter(r->!r.ID.equals(crp.ID))
-        .collect(Collectors.toList());
+    if(this.confirmationsNeeded.isEmpty()) {
+      this.confirmationsNeeded.addAll(SimpleCity.getCity().getRobotsList().stream()
+          .filter(r->!r.ID.equals(crp.ID))
+          .collect(Collectors.toList()));
+    } else {
+      throw new RuntimeException("sendMaintenanceRequest was called before the previous maintenance could be completed");
+    }
     String confirmationIDs = confirmationsNeeded.stream().map(crp -> crp.ID).reduce("",(c1, c2)->c1+' '+c2);
     if (this.confirmationsNeeded.size()>0) {
       l.log("Need maintenance, confirmations needed:"+confirmationIDs);
@@ -79,9 +83,11 @@ public class MaintenanceHandler {
 
   public void confirmMaintenanceRequest(CleaningRobotRep crpConfirm) {
     l.log("Received confirmation from "+crpConfirm.ID);
-    this.confirmationsNeeded.removeIf(c->c.ID.equals(crpConfirm.ID));
-    if(this.confirmationsNeeded.isEmpty()) {
-      enterMaintenance();
+    synchronized (this.confirmationsNeeded) {
+      this.confirmationsNeeded.removeIf(c->c.ID.equals(crpConfirm.ID));
+      if(this.confirmationsNeeded.isEmpty()) {
+        enterMaintenance();
+      }
     }
   }
 
