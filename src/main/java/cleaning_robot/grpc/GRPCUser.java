@@ -41,7 +41,7 @@ public class GRPCUser {
 
       @Override
       public void onError(Throwable t) {
-        l.error("Error while waiting for presentation Ack: "+t.getMessage());
+        l.error("Error while waiting for presentation Ack: "+t.getCause().getMessage());
         me.removeOtherFromCity(toCrp);
         channel.shutdownNow();
       }
@@ -72,7 +72,7 @@ public class GRPCUser {
 
         @Override
         public void onError(Throwable t) {
-          l.error("Error while waiting for leaving Ack: "+t.getMessage());
+          l.error("Error while waiting for leaving Ack: "+t.getCause().getMessage());
           channel.shutdownNow();
         }
 
@@ -102,7 +102,7 @@ public class GRPCUser {
 
         @Override
         public void onError(Throwable t) {
-          l.error("Error while waiting for areYouAlive Ack: "+t.getMessage());
+          l.error("Error while waiting for areYouAlive Ack: "+t.getCause().getMessage());
           me.removeOtherFromCity(crp);
           l.log("Updated city: "+SimpleCity.getCity());
           channel.shutdownNow();
@@ -152,7 +152,7 @@ public class GRPCUser {
 
         @Override
         public void onError(Throwable t) {
-          l.error("Error while waiting for sendMaintenanceRequest Ack: "+t.getMessage());
+          l.error("Error while waiting for sendMaintenanceRequest Ack: "+t.getCause().getMessage());
           me.removeOtherFromCity(c);
           channel.shutdownNow();
         }
