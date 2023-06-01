@@ -19,6 +19,10 @@ public class DataStorage {
     public DataStorage() {
         data = new HashMap<>();
     }
+    // the methods of this class are synchronized since I don't want to be adding an element to the DataStorage while
+    // I'm calculating statistics on it
+    // A better solution could be duplicating the data and calculating the statistics on it but since I would need a deep
+    // copy, the time it would take to deep copy and calculate the simple statistics is probably similar
     public synchronized void addData(String crpID,MqttReading reading) {
         if(data.containsKey(crpID)) {
             List<MqttReading> previousData = new ArrayList<>(data.get(crpID));

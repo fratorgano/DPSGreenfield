@@ -34,7 +34,7 @@ public class City {
     }
   }
 
-  private synchronized boolean canAdd(CleaningRobotRep crp) {
+  private boolean canAdd(CleaningRobotRep crp) {
     return districtList.stream().noneMatch(district -> district.canAddRobot(crp));
   }
 
@@ -47,7 +47,7 @@ public class City {
     return removed;
   }
 
-  synchronized District findBalanced() {
+  District findBalanced() {
     return Collections.min(districtList);
   }
 
@@ -58,7 +58,7 @@ public class City {
     }
     return robotsList;
   }
-  synchronized void buildCity(int n) {
+  void buildCity(int n) {
     // mainly used in tests to reset singleton after each test
     districtList.clear();
     for (int i = 0; i < n; i++) {

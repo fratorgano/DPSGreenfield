@@ -14,37 +14,25 @@ import java.util.stream.Collectors;
 public class MaintenanceHandler {
   private final CleaningRobotRep crp;
   private final CleaningRobot me;
-  Boolean isRunning;
-  public Boolean isInMaintenance;
-  List<CleaningRobotRep> maintenanceQueue = new ArrayList<>();
   MyLogger l = new MyLogger("MaintenanceHandler");
   final List<CleaningRobotRep> confirmationsNeeded = new ArrayList<>();
   public Instant maintenanceInstant = null;
 
   public MaintenanceHandler(CleaningRobotRep crp, CleaningRobot me) {
-    this.isInMaintenance = false;
-    this.isRunning = true;
     this.crp = crp;
     this.me = me;
   }
 
   private synchronized void enterMaintenance() {
     l.warn("Entering maintenance");
-    synchronized (this) {
-      this.isInMaintenance = true;
-    }
     try {
-      Thread.sleep(10*1000);
+      Thread.sleep(5*1000);
     } catch (InterruptedException e) {
       l.error("Failed to sleep for maintenance: "+e.getMessage());
     }
     l.warn("Leaving maintenance");
-    synchronized (this) {
-      this.isInMaintenance = false;
-      this.maintenanceInstant = null;
-      maintenanceQueue.clear();
-      this.notifyAll();
-    }
+    this.maintenanceInstant = null;
+    this.notifyAll();
   }
   public void sendMaintenanceRequest() {
     if(maintenanceInstant!=null) {
@@ -63,6 +51,16 @@ public class MaintenanceHandler {
     if (this.confirmationsNeeded.size()>0) {
       l.log("Need maintenance, confirmations needed:"+confirmationIDs);
       GRPCUser.asyncSendMaintenanceRequest(crp, maintenanceInstant,confirmationsNeeded, this, me);
+      synchronized (this.confirmationsNeeded) {
+        while(!this.confirmationsNeeded.isEmpty()){
+          try {
+            this.confirmationsNeeded.wait();
+          } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+          }
+        }
+        enterMaintenance();
+      }
     } else {
       enterMaintenance();
     }
@@ -85,9 +83,10 @@ public class MaintenanceHandler {
     l.log("Received confirmation from "+crpConfirm.ID);
     synchronized (this.confirmationsNeeded) {
       this.confirmationsNeeded.removeIf(c->c.ID.equals(crpConfirm.ID));
-      if(this.confirmationsNeeded.isEmpty()) {
-        enterMaintenance();
-      }
+//      if(this.confirmationsNeeded.isEmpty()) {
+//        enterMaintenance();
+//      }
+      this.confirmationsNeeded.notify();
     }
   }
 

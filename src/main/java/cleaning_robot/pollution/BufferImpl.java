@@ -9,6 +9,7 @@ import java.util.List;
 public class BufferImpl implements Buffer {
     ArrayList<Measurement> buffer = new ArrayList<>(8);
 
+    // synchronized because so I can be sure of not having concurrent modifications
     @Override
     public synchronized void addMeasurement(Measurement m) {
         buffer.add(m);
@@ -17,6 +18,7 @@ public class BufferImpl implements Buffer {
         }
     }
 
+    // synchronized because I don't want to access the list while it's being modified by an add for example
     @Override
     public synchronized List<Measurement> readAllAndClean() {
         ArrayList<Measurement> copy = new ArrayList<>(buffer);

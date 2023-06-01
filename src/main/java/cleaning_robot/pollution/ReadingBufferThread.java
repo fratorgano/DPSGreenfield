@@ -28,6 +28,7 @@ public class ReadingBufferThread extends Thread {
       try {
         // l.log("Waiting for buffer...");
         synchronized (this.buffer) {
+          // waiting for buffer to get to 8 readings
           this.buffer.wait();
         }
         // l.log("Readings from buffer and calculating averages");

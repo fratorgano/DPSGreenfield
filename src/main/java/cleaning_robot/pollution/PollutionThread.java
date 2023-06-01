@@ -32,7 +32,7 @@ public class PollutionThread extends Thread{
     }
 
     @Override
-    public synchronized void start() {
+    public void start() {
         initializeMqtt(broker);
         initializeSimulator();
         super.start();
