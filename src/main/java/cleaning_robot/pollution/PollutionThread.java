@@ -40,6 +40,7 @@ public class PollutionThread extends Thread{
 
     @Override
     public void run() {
+        Thread.currentThread().setName("PollutionThread");
         // every 15 seconds send an object containing the data of the last readings
         while(isRunning) {
             try {

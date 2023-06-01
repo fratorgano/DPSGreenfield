@@ -23,6 +23,7 @@ public class ReadingBufferThread extends Thread {
 
   @Override
   public void run() {
+    Thread.currentThread().setName("ReadingBufferThread");
     while(this.isRunning) {
       try {
         // l.log("Waiting for buffer...");

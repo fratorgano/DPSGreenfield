@@ -19,6 +19,7 @@ public class GRPCThread extends Thread{
 
   @Override
   public void run() {
+    Thread.currentThread().setName("GRPCThread");
     server = ServerBuilder.forPort(this.port)
         .addService(new GRPCImpl(cr))
         .build();

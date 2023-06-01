@@ -6,6 +6,7 @@ import java.util.ArrayList;
 
 public class MyLogger {
   private final DateTimeFormatter dateFormatter;
+  private final boolean printThread;
   String identifier;
 
   private static final String ANSI_RED = "\u001B[31m";
@@ -14,24 +15,36 @@ public class MyLogger {
   public MyLogger(String id) {
     this.identifier = id;
     this.dateFormatter = DateTimeFormatter.ofPattern("HH:mm:ss");
+    this.printThread = true;
   }
+  public MyLogger(String id, boolean printThread) {
+    this.identifier = id;
+    this.dateFormatter = DateTimeFormatter.ofPattern("HH:mm:ss");
+    this.printThread = printThread;
+  }
+
   public void log(Object o) {
-    String s = o==null?"Null":o.toString();
-    String date = dateFormatter.format(LocalDateTime.now());
-    String toPrint = String.format("%s [%s] %s \n",date,identifier,s);
+    String toPrint = formatter(o);
     System.out.printf(toPrint);
   }
   public void error(Object o) {
-    String s = o.toString();
-    String date = dateFormatter.format(LocalDateTime.now());
-    String toPrint = String.format("%s [%s] %s \n",date,identifier,s);
+    String toPrint = formatter(o);
     System.out.printf(ANSI_RED+toPrint+ANSI_RESET);
   }
   public void warn(Object o) {
+    String toPrint = formatter(o);
+    System.out.printf(ANSI_YELLOW+toPrint+ANSI_RESET);
+  }
+
+  private String formatter(Object o) {
     String s = o.toString();
     String date = dateFormatter.format(LocalDateTime.now());
-    String toPrint = String.format("%s [%s] %s \n",date,identifier,s);
-    System.out.printf(ANSI_YELLOW+toPrint+ANSI_RESET);
+    String threadName = Thread.currentThread().getName().trim();
+    if(this.printThread && !threadName.equals(identifier)) {
+      return String.format("%s [%s,%s] %s \n",date,identifier,Thread.currentThread().getName(),s);
+    } else {
+      return String.format("%s [%s] %s \n",date,identifier,s);
+    }
   }
 
   public static void main(String[] args) {

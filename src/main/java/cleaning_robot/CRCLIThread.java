@@ -17,6 +17,7 @@ public class CRCLIThread extends Thread {
 
   @Override
   public void run() {
+    Thread.currentThread().setName("CRCLIThread");
     BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
     while(running) {
       try {

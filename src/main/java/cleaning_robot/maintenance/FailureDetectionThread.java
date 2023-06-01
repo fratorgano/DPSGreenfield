@@ -18,6 +18,7 @@ public class FailureDetectionThread extends Thread {
 
     @Override
     public void run() {
+        Thread.currentThread().setName("FailureDetectionThread");
         try {
             Thread.sleep(10_000);
             // this synchronized crm keeps the crm hostage
