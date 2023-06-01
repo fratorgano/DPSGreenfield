@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 public class MaintenanceHandler {
   private final CleaningRobotRep crp;
   private final CleaningRobot me;
-  MyLogger l = new MyLogger("MaintenanceHandler");
+  MyLogger l = new MyLogger("MaintenanceHandler", MyLogger.Category.MAINTENANCE);
   final List<CleaningRobotRep> confirmationsNeeded = new ArrayList<>();
   public Instant maintenanceInstant = null;
 
@@ -47,7 +47,7 @@ public class MaintenanceHandler {
     } else {
       throw new RuntimeException("sendMaintenanceRequest was called before the previous maintenance could be completed");
     }
-    String confirmationIDs = confirmationsNeeded.stream().map(crp -> crp.ID).reduce("",(c1, c2)->c1+' '+c2);
+    String confirmationIDs = "["+confirmationsNeeded.stream().map(crp -> crp.ID).reduce("",(c1, c2)->c1+' '+c2)+" ]";
     if (this.confirmationsNeeded.size()>0) {
       l.log("Need maintenance, confirmations needed:"+confirmationIDs);
       GRPCUser.asyncSendMaintenanceRequest(crp, maintenanceInstant,confirmationsNeeded, this, me);

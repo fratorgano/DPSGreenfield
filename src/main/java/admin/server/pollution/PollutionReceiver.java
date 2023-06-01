@@ -9,7 +9,7 @@ public class PollutionReceiver {
     private final String broker;
     private MqttAsyncClient mqttClient;
     private MqttConnectOptions connOpts;
-    MyLogger l = new MyLogger("PollutionReceiver");
+    MyLogger l = new MyLogger("PollutionReceiver", MyLogger.Category.SENSORS);
     public PollutionReceiver(String broker) {
         this.broker = broker;
     }

@@ -34,6 +34,8 @@ public class AdminServer {
     }
 
     public static void main(String[] args) throws InterruptedException {
+        MyLogger.addCategory(MyLogger.Category.GENERAL);
+        MyLogger.addCategory(MyLogger.Category.SENSORS);
         new AdminServer("localhost",1337,"tcp://localhost:1883");
     }
 }

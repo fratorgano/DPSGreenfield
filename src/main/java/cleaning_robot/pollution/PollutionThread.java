@@ -21,7 +21,7 @@ public class PollutionThread extends Thread{
     private ReadingBufferThread rbt;
     private MqttAsyncClient mqttClient;
     private final List<MqttMessage> messages = new ArrayList<>();
-    private final MyLogger l = new MyLogger("PollutionThread");
+    private final MyLogger l = new MyLogger("PollutionThread", MyLogger.Category.SENSORS);
     private MqttConnectOptions connOpts;
 
     public PollutionThread(String broker, String topic, CleaningRobotRep crr) {
