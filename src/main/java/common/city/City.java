@@ -5,6 +5,7 @@ import common.logger.MyLogger;
 
 import java.util.*;
 import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class City {
   private static City c;
@@ -24,6 +25,7 @@ public class City {
     logger.log("Adding robot");
     if (canAdd(crp)) {
       District d = findBalanced();
+      crp.position = generateLocation(d);
       d.addRobot(crp);
       return true;
     } else {
@@ -78,7 +80,30 @@ public class City {
         return "district3";
       }
     }
-
+  }
+  private Position generateLocation(District d) {
+    int x,y;
+    switch (d.name) {
+      case "0":
+        x = ThreadLocalRandom.current().nextInt(0,5);
+        y = ThreadLocalRandom.current().nextInt(0,5);
+        break;
+      case "1":
+        x = ThreadLocalRandom.current().nextInt(0,5);
+        y = ThreadLocalRandom.current().nextInt(5,10);
+        break;
+      case "2":
+        x = ThreadLocalRandom.current().nextInt(5,10);
+        y = ThreadLocalRandom.current().nextInt(5,10);
+        break;
+      case "3":
+        x = ThreadLocalRandom.current().nextInt(5,10);
+        y = ThreadLocalRandom.current().nextInt(0,5);
+        break;
+      default:
+        throw new RuntimeException("Something went wrong while creating a new position");
+    }
+    return new Position(x,y);
   }
 
   @Override
