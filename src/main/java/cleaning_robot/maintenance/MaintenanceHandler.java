@@ -50,8 +50,10 @@ public class MaintenanceHandler {
     String confirmationIDs = "["+confirmationsNeeded.stream().map(crp -> crp.ID).reduce("",(c1, c2)->c1+' '+c2)+" ]";
     if (this.confirmationsNeeded.size()>0) {
       l.log("Need maintenance, confirmations needed:"+confirmationIDs);
-      GRPCUser.asyncSendMaintenanceRequest(crp, maintenanceInstant,confirmationsNeeded, this, me);
       synchronized (this.confirmationsNeeded) {
+        // this is inside synchronized to prevent from elements being removed from confirmationsNeeded while
+        // we are cycling over it to send requests (always happens with 10+ nodes)
+        GRPCUser.asyncSendMaintenanceRequest(crp, maintenanceInstant,confirmationsNeeded, this, me);
         while(!this.confirmationsNeeded.isEmpty()){
           try {
             this.confirmationsNeeded.wait();
