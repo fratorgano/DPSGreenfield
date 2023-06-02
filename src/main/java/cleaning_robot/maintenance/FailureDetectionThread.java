@@ -9,7 +9,7 @@ import java.util.concurrent.ThreadLocalRandom;
 public class FailureDetectionThread extends Thread {
     public final MaintenanceHandler maintenanceHandler;
     Boolean isRunning;
-    MyLogger l = new MyLogger("FailureDetectionThread");
+    MyLogger l = new MyLogger("FailureDetectionThread", MyLogger.Category.MAINTENANCE);
 
     public FailureDetectionThread(CleaningRobotRep crp, CleaningRobot me) {
         isRunning = true;

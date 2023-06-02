@@ -6,16 +6,14 @@ import com.sun.jersey.api.client.*;
 import common.city.RobotList;
 import common.logger.MyLogger;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class AdminClient {
     private final String serverSocket;
-    private final CliThread cliThread;
     MyLogger l = new MyLogger("AdminClient");
     public AdminClient(String serverSocket) {
         this.serverSocket = serverSocket;
-        this.cliThread = new CliThread(this);
+        CliThread cliThread = new CliThread(this);
         cliThread.start();
     }
 
@@ -72,6 +70,7 @@ public class AdminClient {
     }
 
     public static void main(String[] args) {
-        AdminClient ac = new AdminClient("http://localhost:1337");
+        MyLogger.addCategory(MyLogger.Category.GENERAL);
+        new AdminClient("http://localhost:1337");
     }
 }
