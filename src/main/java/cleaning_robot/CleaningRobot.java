@@ -221,8 +221,19 @@ public class CleaningRobot {
     }
 
     public static void main(String[] args) {
-        String ID = args[0];
-        Integer port = Integer.valueOf(args[1]);
+        MyLogger.addCategory(MyLogger.Category.GENERAL);
+        MyLogger.addCategory(MyLogger.Category.MAINTENANCE);
+        String ID; //= args[0];
+        ID = String.valueOf(UUID.randomUUID());
+        int port; //= Integer.valueOf(args[1]);
+        try (
+                ServerSocket socket = new ServerSocket(0);
+        ) {
+            port = socket.getLocalPort();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
         new CleaningRobot(ID,"localhost",port);
     }
 }
