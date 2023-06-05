@@ -3,6 +3,7 @@ package cleaning_robot;
 import common.city.Position;
 
 public class CleaningRobotRep {
+    public boolean maintenance; // used for visualization only, check README.MD
     public String ID;
     public String IPAddress;
     public Integer interactionPort;
@@ -14,6 +15,7 @@ public class CleaningRobotRep {
         this.ID = ID;
         this.IPAddress = IPAddress;
         this.interactionPort = interactionPort;
+        this.maintenance = false; // used for visualization only, check README.MD
     }
 
     @Override

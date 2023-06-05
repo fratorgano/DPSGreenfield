@@ -13,9 +13,12 @@ import common.city.Position;
 import common.city.SimpleCity;
 import common.logger.MyLogger;
 
+import java.io.IOException;
+import java.net.ServerSocket;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
 
 public class CleaningRobot {
     private final MyLogger l = new MyLogger("CleaningRobot");
@@ -189,7 +192,7 @@ public class CleaningRobot {
             l.log("Sending POST insert request");
             return Optional.of(webResource.type("application/json").post(ClientResponse.class, input));
         } catch (ClientHandlerException e) {
-            l.error("Failed to make the insert post request");
+            l.error("Failed to make the insert POST request");
             return Optional.empty();
         }
     }
@@ -202,8 +205,41 @@ public class CleaningRobot {
             l.log("Sending DELETE remove request for "+crp.ID);
             return Optional.of(webResource.type("application/json").delete(ClientResponse.class, input));
         } catch (ClientHandlerException e) {
-            l.error("Failed to make the insert post request");
+            l.error("Failed to make the remove DELETE request");
             return Optional.empty();
+        }
+    }
+
+    // THIS PART OF THE CODE IS NOT PART OF THE PROJECT ITSELF, IT JUST NOTIFIES THE SERVER THAT IT ENTERED MAINTENANCE
+    // AND NOTIFIES THE SERVER THAT IT LEFT MAINTENANCE, IT'S NOT USED TO ENTER WHO ENTERS MAINTENANCE
+    // THIS IS USED FOR VISUALIZATION PURPOSES ONLY
+    // Check README.MD for more information
+    public void enterMaintenanceInformation() {
+        // notifies the server that it's entering maintenance
+        Client client = Client.create();
+        WebResource webResource = client.resource(serverAddress+"/robots/maintenanceEnterInformation");
+        String input = new Gson().toJson(crp);
+        try {
+            webResource.type("application/json").put(ClientResponse.class, input);
+            l.log("Sending PUT Maintenance information (enter) for "+crp.ID);
+        } catch (ClientHandlerException e) {
+            l.error("Failed to make the maintenance PUT request");
+        }
+    }
+    // THIS PART OF THE CODE IS NOT PART OF THE PROJECT ITSELF, IT JUST NOTIFIES THE SERVER THAT IT ENTERED MAINTENANCE
+    // AND NOTIFIES THE SERVER THAT IT LEFT MAINTENANCE, IT'S NOT USED TO CHOOSE WHO ENTERS MAINTENANCE
+    // THIS IS USED FOR VISUALIZATION PURPOSES ONLY
+    // Check README.MD for more information
+    public void leaveMaintenanceInformation() {
+        // notifies the server that it's leaving maintenance
+        Client client = Client.create();
+        WebResource webResource = client.resource(serverAddress+"/robots/maintenanceExitInformation");
+        String input = new Gson().toJson(crp);
+        try {
+            webResource.type("application/json").put(ClientResponse.class, input);
+            l.log("Sending PUT Maintenance information (leave) for "+crp.ID);
+        } catch (ClientHandlerException e) {
+            l.error("Failed to make the maintenance PUT request");
         }
     }
 

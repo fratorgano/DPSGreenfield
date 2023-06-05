@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Greenfield</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap">
+</head>
+<body>
+<div class="main">
+    <h1 id="h1Title">Greenfield</h1>
+    <div id="data"></div>
+    <div id="grid" class="grid"></div>
+    <div>
+        <h2>Statistics</h2>
+        <div>
+            <h3>Get average pollution</h3>
+            <label for="startDate">Starting Date: </label>
+            <input type="datetime-local" name="Start" id="startDate">
+            <br>
+            <label for="endDate">Ending Date: </label>
+            <input type="datetime-local" name="Start" id="endDate">
+            <br>
+            <button onclick=getAverageTime()>Get average pollution</button>
+            <br>
+            <div id="resultAverageTime"></div>
+        </div>
+        <div>
+            <h3>Get average pollution from a robot</h3><p><small>(Click on a robot to see the value)</small></p>
+            <label for="nReadings">Number of readings to consider: </label>
+            <input type="number" name="Start" id="nReadings" value="50">
+
+        </div>
+    </div>
+</div>
+
+</body>
+<script>
+    const now = new Date;
+    now.setMinutes(now.getMinutes()-now.getTimezoneOffset());
+    document.getElementById("endDate").value = now.toISOString().slice(0,16);
+    now.setMonth(now.getMonth()-1);
+    document.getElementById("startDate").value = now.toISOString().slice(0,16);
+
+    function getAverageTime() {
+        const startingDate = document.getElementById("startDate").value;
+        const startIsoString = new Date(startingDate).toISOString()
+        const endingDate = document.getElementById("endDate").value;
+        const endIsoString = new Date(endingDate).toISOString()
+        console.log(new Date(startingDate).toISOString())
+        const request = new Request(`http://localhost:1337/client/getAverageTime/${startIsoString}/${endIsoString}`,{
+            method: "GET"
+        });
+        fetch(request)
+            .then(async (response) => {
+                if (response.status === 200) {
+                    document.getElementById("resultAverageTime").textContent = await response.text()
+                }
+            })
+    }
+</script>
+<script>
+    buildGrid()
+    updateGrid()
+    setInterval(()=>{
+        updateGrid();
+    },500)
+
+    function buildGrid() {
+        const grid = document.getElementById("grid")
+        grid.innerHTML="";
+        for (let i = 0; i < 10; i++) {
+            for (let j = 0; j < 10; j++) {
+                const div = document.createElement("div");
+                div.classList.add('cell')
+                div.id = `${i}-${j}`;
+                if (i<=4) {
+                    if(j<=4) {
+                        div.classList.add('district1')
+                    } else {
+                        div.classList.add('district2')
+                    }
+                } else {
+                    if(j<=4) {
+                        div.classList.add('district4')
+                    } else {
+                        div.classList.add('district3')
+                    }
+                }
+                // div.textContent=div.id;
+                grid.append(div);
+            }
+        }
+    }
+    let previous = null;
+    function updateGrid() {
+        // buildGrid()
+        const request = new Request("http://localhost:1337/client/getRobots",{
+            method: "GET"
+        });
+        fetch(request)
+            .then(async (response) => {
+                if (response.status === 200) {
+                    const data = await response.json();
+                    if(previous!=null) {
+                        for (const p of previous) {
+                            let present = false;
+                            for (const r of data["robots"]) {
+                                if(r["ID"]===p["ID"]) {
+                                    present = true;
+                                }
+                            }
+                            if(!present) {
+                                document.getElementById(p["ID"]).remove()
+                            }
+                        }
+                    }
+                    previous = data["robots"];
+                    document.getElementById("h1Title").textContent = `Greenfield (${data["robots"].length})`
+                    for (const r of data["robots"]) {
+                        const div = document.getElementById(`${r.position.x}-${r.position.y}`);
+                        let robotDiv = document.getElementById(r["ID"]);
+                        if(robotDiv) {
+                            const robotSpan = robotDiv.childNodes.item(1);
+
+                            if(r["ID"]===robotDiv["id"]){
+                                if(r["maintenance"]===true) {
+                                    robotSpan.classList.add("maintenance")
+                                } else {
+                                    robotSpan.classList.remove("maintenance")
+                                }
+                                continue;
+                            }
+                        }
+                        robotDiv = document.createElement("div");
+                        robotDiv.id = r["ID"];
+
+                        const popupSpan = document.createElement("span");
+                        popupSpan.classList.add("popuptext");
+                        robotDiv.append(popupSpan)
+
+                        const robotSpan = document.createElement("span");
+                        robotSpan.textContent = "🤖"
+                        if(r["maintenance"]===true) {
+                            robotSpan.classList.add("maintenance")
+                        }
+                        robotDiv.append(robotSpan)
+                        let interval = null;
+                        const robotIDPar = document.createElement("p");
+                        robotIDPar.textContent = `Robot ${r["ID"]}`
+                        popupSpan.append(robotIDPar)
+                        const queryResPar = document.createElement("p");
+                        robotSpan.onclick = () => {
+                            if(popupSpan.classList.toggle("show")) {
+                                const updateFunction = ()=>{
+                                    popupSpan.queryResPar = ""
+                                    const readingsNumber = document.getElementById("nReadings").value;
+                                    const request = new Request(`http://localhost:1337/client/getAverageN/${r["ID"]}/${readingsNumber}`,{
+                                        method: "GET"
+                                    });
+                                    fetch(request).then(async(response)=>{
+                                        const value = await response.text();
+
+                                        if(value!=null) {
+                                            if(response.status===200) {
+                                                queryResPar.textContent = `average${readingsNumber}: `+parseFloat(value).toFixed(4);
+                                            } else {
+                                                queryResPar.textContent = `average${readingsNumber}: `+value;
+                                            }
+                                        }
+                                        popupSpan.append(queryResPar)
+
+                                    })
+                                }
+                                updateFunction()
+                                interval = setInterval(updateFunction,5_000)
+                            } else {
+                                if(interval) {clearInterval(interval)}
+                            }
+                        }
+                        div.append(robotDiv);
+                    }
+                }
+            })
+    }
+</script>
+
+</html>

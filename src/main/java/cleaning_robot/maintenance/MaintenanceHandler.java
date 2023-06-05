@@ -26,7 +26,9 @@ public class MaintenanceHandler {
   private synchronized void enterMaintenance() {
     l.warn("Entering maintenance");
     try {
+      me.enterMaintenanceInformation(); // used for visualization only, check README.MD
       Thread.sleep(5*1000);
+      me.leaveMaintenanceInformation(); // used for visualization only, check README.MD
     } catch (InterruptedException e) {
       l.error("Failed to sleep for maintenance: "+e.getMessage());
     }

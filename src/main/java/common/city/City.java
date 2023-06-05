@@ -46,6 +46,24 @@ public class City {
     }
     return removed;
   }
+  // THIS PART OF THE CODE IS NOT PART OF THE PROJECT ITSELF, IT JUST NOTIFIES THE SERVER THAT IT ENTERED MAINTENANCE
+  // AND NOTIFIES THE SERVER THAT IT LEFT MAINTENANCE, IT'S NOT USED TO CHOOSE WHO ENTERS MAINTENANCE
+  // THIS IS USED FOR VISUALIZATION PURPOSES ONLY
+  // Check README.MD for more information
+  public synchronized void goIntoMaintenance(CleaningRobotRep crp) {
+    for (District district : districtList) {
+      district.setMaintenance(crp,true);
+    }
+  }
+  // THIS PART OF THE CODE IS NOT PART OF THE PROJECT ITSELF, IT JUST NOTIFIES THE SERVER THAT IT ENTERED MAINTENANCE
+  // AND NOTIFIES THE SERVER THAT IT LEFT MAINTENANCE, IT'S NOT USED TO CHOOSE WHO ENTERS MAINTENANCE
+  // THIS IS USED FOR VISUALIZATION PURPOSES ONLY
+  // Check README.MD for more information
+  public synchronized void leaveMaintenance(CleaningRobotRep crp) {
+    for (District district : districtList) {
+      district.setMaintenance(crp,false);
+    }
+  }
 
   District findBalanced() {
     return Collections.min(districtList);

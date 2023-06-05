@@ -1,0 +1,73 @@
+body {
+    font-family: 'Poppins', sans-serif;
+    font-size: 25px;
+}
+
+.main {
+    width: 50%;
+    margin:0 auto auto auto;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(10,1fr);
+    grid-auto-rows: minmax(60px, auto);
+    gap:10px;
+}
+/*.cell {*/
+/*    height: 50px;*/
+/*    border:1px solid red;*/
+/*}*/
+.district1 {
+    background-color: #9ebefa;
+}
+.district2 {
+    background-color: #c9ffba;
+}
+.district3 {
+    background-color: #fde9ab;
+}
+.district4 {
+    background-color: #fca7a4;
+}
+
+
+.cell {
+    position: relative;
+    display: inline-block;
+    cursor: pointer;
+}
+.maintenance {
+    color: transparent;
+    text-shadow: 0 0 0 red;
+}
+p {
+    margin:0;
+}
+h3 {
+    margin-top:1%;
+    margin-bottom:0;
+}
+h2 {
+    margin-top:1%;
+    margin-bottom:0;
+}
+/* The popup related code was adapted from the one here: https://www.w3schools.com/howto/howto_js_popup.asp */
+.cell .popuptext {
+    visibility: hidden;
+    width: 360px;
+    background-color: #ffffff;
+    color: #000000;
+    text-align: center;
+    border-radius: 6px;
+    padding: 8px 0;
+    position: absolute;
+    z-index: 1;
+    bottom: 125%;
+    /*left: 0%;*/
+    margin-left: -150px;
+    border:1px solid black;
+}
+.cell .show {
+    visibility: visible;
+}

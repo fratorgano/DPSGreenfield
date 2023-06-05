@@ -24,6 +24,18 @@ public class District implements Comparable<District> {
   public boolean canAddRobot(CleaningRobotRep crp) {
     return cleaningRobotRepList.stream().anyMatch(c-> Objects.equals(c.ID, crp.ID));
   }
+  // THIS PART OF THE CODE IS NOT PART OF THE PROJECT ITSELF, IT JUST NOTIFIES THE SERVER THAT IT ENTERED MAINTENANCE
+  // AND NOTIFIES THE SERVER THAT IT LEFT MAINTENANCE, IT'S NOT USED TO CHOOSE WHO ENTERS MAINTENANCE
+  // THIS IS USED FOR VISUALIZATION PURPOSES ONLY
+  // Check README.MD for more information
+  public void setMaintenance(CleaningRobotRep crp,boolean value) {
+    for (CleaningRobotRep cleaningRobotRep : cleaningRobotRepList) {
+      if(cleaningRobotRep.ID.equals(crp.ID)) {
+        cleaningRobotRep.maintenance = value;
+        return;
+      }
+    }
+  }
 
   public List<CleaningRobotRep> getCleaningRobotRepList() {
     return new ArrayList<>(cleaningRobotRepList);

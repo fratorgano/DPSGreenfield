@@ -50,4 +50,31 @@ public class ToRobotServices {
       return Response.status(500).build();
     }
   }
+
+  // THIS PART OF THE CODE IS NOT PART OF THE PROJECT ITSELF, IT JUST NOTIFIES THE SERVER THAT IT ENTERED MAINTENANCE
+  // AND NOTIFIES THE SERVER THAT IT LEFT MAINTENANCE, IT'S NOT USED TO CHOOSE WHO ENTERS MAINTENANCE
+  // THIS IS USED FOR VISUALIZATION PURPOSES ONLY
+  // Check README.MD for more information
+  @PUT
+  @Path("maintenanceEnterInformation")
+  @Consumes({"application/json"})
+  public Response enterMaintenance(CleaningRobotRep crp) {
+    MyLogger l = new MyLogger("RobotsRestServices");
+    City c = City.getCity();
+    c.goIntoMaintenance(crp);
+    return Response.status(200).build();
+  }
+  // THIS PART OF THE CODE IS NOT PART OF THE PROJECT ITSELF, IT JUST NOTIFIES THE SERVER THAT IT ENTERED MAINTENANCE
+  // AND NOTIFIES THE SERVER THAT IT LEFT MAINTENANCE, IT'S NOT USED TO CHOOSE WHO ENTERS MAINTENANCE
+  // THIS IS USED FOR VISUALIZATION PURPOSES ONLY
+  // Check README.MD for more information
+  @PUT
+  @Path("maintenanceExitInformation")
+  @Consumes({"application/json"})
+  public Response leaveMaintenance(CleaningRobotRep crp) {
+    MyLogger l = new MyLogger("RobotsRestServices");
+    City c = City.getCity();
+    c.leaveMaintenance(crp);
+    return Response.status(200).build();
+  }
 }
