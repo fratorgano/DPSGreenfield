@@ -83,19 +83,19 @@ class CityTest {
   @Test
   void getDistrictName() {
     String actual = City.getDistrictName(1,2);
-    String expected = "district-1";
+    String expected = "district1";
     Assertions.assertEquals(expected,actual);
     actual = City.getDistrictName(4,4);
-    expected = "district-1";
+    expected = "district1";
     Assertions.assertEquals(expected,actual);
     actual = City.getDistrictName(4,5);
-    expected = "district-2";
+    expected = "district2";
     Assertions.assertEquals(expected,actual);
     actual = City.getDistrictName(5,4);
-    expected = "district-4";
+    expected = "district4";
     Assertions.assertEquals(expected,actual);
     actual = City.getDistrictName(5,5);
-    expected = "district-3";
+    expected = "district3";
     Assertions.assertEquals(expected,actual);
   }
 }
