@@ -72,3 +72,10 @@ h2 {
 .cell .show {
     visibility: visible;
 }
+
+@media (prefers-color-scheme: dark) {
+    body {
+        background-color: #292929;
+        color:white;
+    }
+}
