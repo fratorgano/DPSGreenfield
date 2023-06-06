@@ -24,12 +24,13 @@ public class FailureDetectionThread extends Thread {
             while (isRunning) {
                 if (maintenanceHandler.maintenanceInstant == null) {
                     l.log("Checking for failures");
-                    if (ThreadLocalRandom.current().nextInt(0, 10) >3) {
+                    if (ThreadLocalRandom.current().nextDouble()>=0.9) {
                         l.warn("FAILURE detected, need maintenance");
                         maintenanceHandler.sendMaintenanceRequest();
                     }
                 }
-                Thread.sleep( ThreadLocalRandom.current().nextInt(1_000,10_000));
+                Thread.sleep(10_000);
+                //Thread.sleep(ThreadLocalRandom.current().nextInt(1_000,10_000));
             }
         } catch (InterruptedException e) {
             l.error("Failed to run: "+e.getMessage());
