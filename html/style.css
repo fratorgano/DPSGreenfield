@@ -11,7 +11,7 @@ body {
 .grid {
     display: grid;
     grid-template-columns: repeat(10,1fr);
-    grid-auto-rows: minmax(60px, auto);
+    grid-auto-rows: minmax(45px, auto);
     gap:10px;
 }
 /*.cell {*/
@@ -67,6 +67,7 @@ h2 {
     /*left: 0%;*/
     margin-left: -150px;
     border:1px solid black;
+    word-wrap: break-word;
 }
 .cell .show {
     visibility: visible;
