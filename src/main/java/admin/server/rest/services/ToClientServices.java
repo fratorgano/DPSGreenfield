@@ -19,7 +19,9 @@ public class ToClientServices {
     @Produces("application/json")
     public Response getRobots(){
         List<CleaningRobotRep> list = City.getCity().getRobotsList();
-        return Response.ok(new RobotList(list)).build();
+        return Response.ok(new RobotList(list))
+            .header("Access-Control-Allow-Origin","http://localhost:63342") // used to handle CORS for the visualization (check README.md)
+            .build();
     }
 
     @GET
@@ -28,9 +30,15 @@ public class ToClientServices {
     public Response getAverageN(@PathParam("crpID") String crpId,@PathParam("n") Integer n){
         Double result = DataStorage.getInstance().averageN(n,crpId);
         if (result!=null) {
-            return Response.ok(result.toString()).build();
+            return Response
+                .ok(result.toString())
+                .header("Access-Control-Allow-Origin","http://localhost:63342") // used to handle CORS for the visualization (check README.md)
+                .build();
         } else {
-            return Response.status(400).entity("No data received from robot with that ID").build();
+            return Response
+                .status(400).entity("No data received from robot with that ID")
+                .header("Access-Control-Allow-Origin","http://localhost:63342") // used to handle CORS for the visualization (check README.md)
+                .build();
         }
     }
 
@@ -40,9 +48,13 @@ public class ToClientServices {
     public Response getAverageN(@PathParam("start") String start,@PathParam("end") String end){
         Double result = DataStorage.getInstance().averageTime(start,end);
         if (result!=null) {
-            return Response.ok(result.toString()).build();
+            return Response.ok(result.toString())
+                .header("Access-Control-Allow-Origin","http://localhost:63342") // used to handle CORS for the visualization (check README.md)
+                .build();
         } else {
-            return Response.status(400).entity("No data received from robot with that ID").build();
+            return Response.status(400).entity("No data received from robot with that ID")
+                .header("Access-Control-Allow-Origin","http://localhost:63342") // used to handle CORS for the visualization (check README.md)
+                .build();
         }
     }
 }
