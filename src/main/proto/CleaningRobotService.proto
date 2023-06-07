@@ -4,17 +4,16 @@ package proto;
 // Defining a Service, a Service can have multiple RPC operations
 service CleaningRobotService {
   rpc introduceYourself(Introduction) returns (Ack);
-  rpc leaving(CleaningRobotRep) returns (Ack);
+  rpc leaving(CRRepService) returns (Ack);
   rpc areYouAlive(Ack) returns (Ack);
-  rpc maintenanceNeed(MaintenanceReq) returns (Ack);
-  rpc confirmMaintenance(CleaningRobotRep) returns (Ack);
+  rpc maintenanceNeed(MaintenanceReq) returns (CRRepService);
 }
 message MaintenanceReq {
-  CleaningRobotRep crp = 1;
+  CRRepService crp = 1;
   string time = 2;
 }
 message Introduction {
-  CleaningRobotRep crp = 1;
+  CRRepService crp = 1;
   Position position = 2;
 }
 message Position {
@@ -23,7 +22,7 @@ message Position {
 }
 message Ack {}
 
-message CleaningRobotRep {
+message CRRepService {
   string ID = 1;
   string IP = 2;
   int32 port = 3;

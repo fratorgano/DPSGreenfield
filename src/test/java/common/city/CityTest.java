@@ -1,8 +1,6 @@
 package common.city;
 
 import cleaning_robot.CleaningRobotRep;
-import common.city.City;
-import common.city.District;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -13,7 +11,7 @@ class CityTest {
   @BeforeEach
   void setUp() {
     // so that singleton is reset before each test
-    City.getCity().buildCity();
+    City.getCity().buildCity(4);
   }
 
   @Test
@@ -80,5 +78,24 @@ class CityTest {
 
   @AfterEach
   void tearDown() {
+  }
+
+  @Test
+  void getDistrictName() {
+    String actual = City.getDistrictName(1,2);
+    String expected = "district1";
+    Assertions.assertEquals(expected,actual);
+    actual = City.getDistrictName(4,4);
+    expected = "district1";
+    Assertions.assertEquals(expected,actual);
+    actual = City.getDistrictName(4,5);
+    expected = "district2";
+    Assertions.assertEquals(expected,actual);
+    actual = City.getDistrictName(5,4);
+    expected = "district4";
+    Assertions.assertEquals(expected,actual);
+    actual = City.getDistrictName(5,5);
+    expected = "district3";
+    Assertions.assertEquals(expected,actual);
   }
 }

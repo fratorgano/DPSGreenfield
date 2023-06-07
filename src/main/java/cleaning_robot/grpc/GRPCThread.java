@@ -1,25 +1,27 @@
-package cleaning_robot;
+package cleaning_robot.grpc;
 
+import cleaning_robot.CleaningRobot;
 import common.logger.MyLogger;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
 
 import java.io.IOException;
 
-public class CleaningRobotGRPCThread extends Thread{
+public class GRPCThread extends Thread{
   private final Integer port;
   private final CleaningRobot cr;
-  MyLogger l = new MyLogger("CleaningRobotGRPCThread");
+  MyLogger l = new MyLogger("GRPCThread");
   Server server;
-  public CleaningRobotGRPCThread(Integer port, CleaningRobot cr) {
+  public GRPCThread(Integer port, CleaningRobot cr) {
     this.port = port;
     this.cr = cr;
   }
 
   @Override
   public void run() {
+    Thread.currentThread().setName("GRPCThread");
     server = ServerBuilder.forPort(this.port)
-        .addService(new CleaningRobotGRPCImpl(cr))
+        .addService(new GRPCImpl(cr))
         .build();
     startServer();
   }

@@ -1,5 +1,6 @@
 package cleaning_robot;
 
+import cleaning_robot.grpc.GRPCUser;
 import common.logger.MyLogger;
 
 public class CleaningRobotHeartbeatThread extends Thread {
@@ -16,7 +17,7 @@ public class CleaningRobotHeartbeatThread extends Thread {
   public void run() {
     l.log("Starting...");
     while(this.running) {
-      CleaningRobotGRPCUser.asyncHeartbeat(this.cr);
+      GRPCUser.asyncHeartbeat(this.cr);
       try {
         Thread.sleep(15*1000);
       } catch (InterruptedException e) {
