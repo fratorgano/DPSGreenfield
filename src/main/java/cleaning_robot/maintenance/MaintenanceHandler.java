@@ -39,7 +39,7 @@ public class MaintenanceHandler {
   public void sendMaintenanceRequest() {
     if(maintenanceInstant!=null) {
       l.error("sendMaintenanceRequest was called twice before being done");
-      throw new RuntimeException("This function should be called only once");
+      l.error("please wait until maintenance is done before triggering it again");
     }
     this.maintenanceInstant = Instant.now();
     if(this.confirmationsNeeded.isEmpty()) {
