@@ -72,6 +72,9 @@ h2 {
 .cell .show {
     visibility: visible;
 }
+.robot {
+    display:inline-block;
+}
 
 @media (prefers-color-scheme: dark) {
     body {
