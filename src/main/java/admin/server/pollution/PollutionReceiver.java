@@ -43,10 +43,13 @@ public class PollutionReceiver {
             }
             @Override
             public void messageArrived(String topic, MqttMessage message) {
-                l.log("Topic: "+topic+", Message:"+message);
                 if(topic.contains("greenfield/pollution/")) {
                     MqttReading mqttReading = MqttReading.fromJson(message.toString());
-                    DataStorage.getInstance().addData(mqttReading != null ? mqttReading.crpID : null,mqttReading);
+                    if(mqttReading!=null) {
+                        l.log("Got a series of average readings for: "+topic+" from "+mqttReading.crpID +" at "+mqttReading.timestamp);
+                        DataStorage.getInstance().addData(mqttReading.crpID,mqttReading);
+                    }
+
                 }
             }
             @Override
