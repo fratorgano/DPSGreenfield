@@ -259,6 +259,7 @@ public class CleaningRobot {
     public static void main(String[] args) {
         MyLogger.addCategory(MyLogger.Category.GENERAL);
         MyLogger.addCategory(MyLogger.Category.MAINTENANCE);
+        MyLogger.addCategory(MyLogger.Category.SENSORS);
         String ID; //= args[0];
         ID = String.valueOf(UUID.randomUUID());
         int port; //= Integer.valueOf(args[1]);
