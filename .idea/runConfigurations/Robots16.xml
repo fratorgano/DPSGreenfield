@@ -1,0 +1,21 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Robots16" type="CompoundRunConfigurationType">
+    <toRun name="Robot0" type="Application" />
+    <toRun name="Robot1" type="Application" />
+    <toRun name="Robot10" type="Application" />
+    <toRun name="Robot11" type="Application" />
+    <toRun name="Robot12" type="Application" />
+    <toRun name="Robot13" type="Application" />
+    <toRun name="Robot14" type="Application" />
+    <toRun name="Robot15" type="Application" />
+    <toRun name="Robot2" type="Application" />
+    <toRun name="Robot3" type="Application" />
+    <toRun name="Robot4" type="Application" />
+    <toRun name="Robot5" type="Application" />
+    <toRun name="Robot6" type="Application" />
+    <toRun name="Robot7" type="Application" />
+    <toRun name="Robot8" type="Application" />
+    <toRun name="Robot9" type="Application" />
+    <method v="2" />
+  </configuration>
+</component>
