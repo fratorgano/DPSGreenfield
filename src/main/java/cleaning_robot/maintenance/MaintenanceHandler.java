@@ -40,6 +40,7 @@ public class MaintenanceHandler {
     if(maintenanceInstant!=null) {
       l.error("sendMaintenanceRequest was called twice before being done");
       l.error("please wait until maintenance is done before triggering it again");
+      return;
     }
     this.maintenanceInstant = Instant.now();
     if(this.confirmationsNeeded.isEmpty()) {
